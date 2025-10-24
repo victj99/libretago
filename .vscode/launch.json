@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-LibretagoApplication<libretago>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.utp.libretago.LibretagoApplication",
+            "projectName": "libretago",
+            "args": "",
+            // "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Run and Debug Spring Boot",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005,
+            "projectName": "libretago",
+            "preLaunchTask": "start-spring-boot-debug",
+            "postDebugTask": "stop-spring-boot-debug"
+        }
+    ]
+}
