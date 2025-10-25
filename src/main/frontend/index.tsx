@@ -19,9 +19,9 @@ import { ConfirmProvider } from './components/common/ConfirmDialog'
 
 function App() {
   return <ConfirmProvider>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+  <AuthProvider>
+    <RouterProvider router={router} />
+  </AuthProvider>
   </ConfirmProvider>
 }
 

@@ -1,0 +1,41 @@
+@layer theme, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+
+vaadin-side-nav-item.item-error::part(link) {
+    color: var(--lumo-error-text-color);
+}
+
+vaadin-side-nav-item.item-error>vaadin-icon {
+    color: var(--lumo-error-color);
+}
+
+vaadin-side-nav-item.item-error::part(link):hover {
+    color: var(--lumo-error-text-color);
+    background-color: var(--lumo-error-color-10pct);
+    cursor: pointer;
+}
+
+vaadin-dialog-overlay.responsive-dialog::part(overlay) {
+    @apply w-full md:w-3xl lg:w-4xl;
+}
+
+vaadin-grid::part(editar-registro) {
+    background-color: var(--lumo-primary-color-10pct);
+}
+
+@media screen and (min-width: 801px) {
+    vaadin-app-layout::part(navbar) {
+        display: none !important;
+    }
+}
+
+vaadin-button {
+    cursor: pointer;
+}
+
+.loading-overlay {
+    @apply absolute size-full top-0 left-0 bg-gray-600/70 content-center text-center;
+}
