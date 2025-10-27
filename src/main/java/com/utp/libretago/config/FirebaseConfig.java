@@ -26,7 +26,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
  * @since 2025-10-27
  */
 
-
 @Configuration
 public class FirebaseConfig {
 
