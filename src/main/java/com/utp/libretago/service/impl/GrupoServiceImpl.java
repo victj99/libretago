@@ -24,7 +24,7 @@ import com.utp.libretago.service.GrupoService;
  * Permite buscar, crear, actualizar e inactivar grupos, así como gestionar alumnos asociados.
   * @author Roberto Anton
  * @version 1.0
- * @since 2025-10
+ * @since 2025-10-28
  */
 @Service
 public class GrupoServiceImpl implements GrupoService {
