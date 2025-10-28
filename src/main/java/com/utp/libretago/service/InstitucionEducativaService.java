@@ -12,7 +12,7 @@ import com.utp.libretago.entity.InstitucionEducativa;
 /**
      * Servicio para la gestión de instituciones educativas.
      * Permite buscar, crear, actualizar, inactivar y listar instituciones.
-     * @author Roberto
+     * @author Roberto Anton
      * @version 1.0
      * @since 2025-10-28
  */
