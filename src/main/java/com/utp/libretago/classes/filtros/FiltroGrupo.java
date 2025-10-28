@@ -42,7 +42,7 @@ import lombok.Setter;
  *
  * @author Roberto Anton
  * @version 1.0
- * @Sincer 28-10-2025
+ * @since 28-10-2025
  */
 
 
