@@ -15,12 +15,22 @@ import com.vaadin.hilla.BrowserCallable;
 
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.security.PermitAll;
-
+/**
+     * Servicio para obtener información del usuario autenticado y gestionar tokens de dispositivos.
+     * Permite obtener datos del usuario actual y registrar o eliminar tokens de dispositivos asociados.
+     * @author Roberto
+     * @version 1.0
+     * @since 2025-10-28
+ */
 @BrowserCallable
 public class LoggedUserService {
     @Autowired
     private TokenDispositivoService tokenDispositivoService;
 
+    /**
+         * Obtiene información básica del usuario autenticado, incluyendo nombre y roles.
+         * @return {@link UserInfo} con el nombre de usuario y lista de roles.
+     */
     @Nonnull
     @PermitAll
     public UserInfo getUserInfo() {
@@ -31,7 +41,11 @@ public class LoggedUserService {
         return new UserInfo(auth.getName(), authorities);
     }
 
-
+    /**
+         * Registra un token de dispositivo para el usuario autenticado.
+         * Si el token ya existe y pertenece a otro usuario, se reasigna al usuario actual.
+         * @param token Token del dispositivo a registrar.
+     */
     @PermitAll
     public void registrarDispositivo(String token) {
         // Obtener el usuario autenticado actual
@@ -54,7 +68,12 @@ public class LoggedUserService {
 
         tokenDispositivoService.registrarTokenDispositivo(tokenNuevo);
     }
-
+    
+    /**
+         * Elimina un token de dispositivo asociado al usuario autenticado.
+         * Solo se elimina si el token pertenece al usuario actual.
+         * @param token Token del dispositivo a eliminar.
+     */
     @PermitAll
     public void eliminarDispositivo(String token) {
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
