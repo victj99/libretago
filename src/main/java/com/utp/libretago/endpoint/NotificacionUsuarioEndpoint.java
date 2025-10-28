@@ -27,9 +27,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @since 2025-10-28
  */
 
-
-
-
 @Endpoint
 // Solo los apoderados pueden acceder a este endpoint
 @RolesAllowed({ RolesEnum.APODERADO })
