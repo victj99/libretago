@@ -27,7 +27,7 @@ import com.utp.libretago.entity.Alumno;
  *
  * @author Jhon
  * @version 1.0
- * @since 2025-10
+ * @since 2025-10-27
  */
 public interface AlumnoRepository extends JpaRepository<Alumno, Long>, JpaSpecificationExecutor<Alumno> {
 
