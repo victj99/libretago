@@ -30,7 +30,7 @@ import jakarta.persistence.criteria.Predicate;
      * @see com.utp.libretago.entity.InstitucionEducativa
      * @author Roberto Anton
      * @version 1.0
-     * @sincer 28-10-2025
+     * @since 28-10-2025
      * @param nombre     Nombre de la institución (búsqueda parcial, insensible a mayúsculas/minúsculas).
      * @param codigoUgel Código UGEL de la institución (búsqueda parcial, insensible a mayúsculas/minúsculas).
      * @param activo     Estado de actividad de la institución.
