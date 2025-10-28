@@ -14,6 +14,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 /**
  * Clase utilitaria para operaciones relacionadas con archivos Excel.
  * Proporciona métodos para leer valores de celdas, validar datos y generar archivos de errores.
+  * @author Roberto Anton
+ * @version 1.0
+ * @since 2025-10
  */
 public class ExcelUtils {
     
