@@ -34,9 +34,9 @@ import jakarta.annotation.security.RolesAllowed;
  * la institución educativa asociada al usuario autenticado.
  * </p>
  *
- * @author Jhonatan
+ * @author Jhon Peña
  * @version 1.0
- * @since 2025-10
+ * @since 2025-10-27
  */
 @Endpoint
 @RolesAllowed({ RolesEnum.COLEGIO })
