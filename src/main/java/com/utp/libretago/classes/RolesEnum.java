@@ -9,7 +9,7 @@ package com.utp.libretago.classes;
  * 
  * @author Roberto Anton
  * @version 1.0
- * @s
+ * @since 28-10-2025
   */
 
 public class RolesEnum {
