@@ -69,6 +69,7 @@ public class GrupoServiceImpl implements GrupoService {
         }
 
         return Optional.of(grupo.get().obtenerGrupoDTO());
+    }
     /**
          * Crea un nuevo grupo y registra los alumnos asociados.
          * @param grupoDTO Datos del grupo a crear.
