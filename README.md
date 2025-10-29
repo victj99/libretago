@@ -52,6 +52,23 @@ Crear la base de datos desde cero
 
 Si se necesita crear la base de datos desde cero, el proyecto incluye un script SQL con la estructura y datos iniciales: `src/main/resources/bd-libretago.sql`.
 
+Generar Javadoc
+
+Si se quiere generar la documentación Javadoc del código Java del proyecto se debe ejecutar el siguiente comando:
+
+En macOS / Linux (zsh) o en entornos similares:
+```bash
+./mvnw javadoc:javadoc
+```
+
+En Windows (PowerShell / CMD):
+
+```powershell
+./mvnw.cmd javadoc:javadoc
+```
+
+Al finalizar, la documentación se generará en `target/reports/apidocs/` y para ver la documentación se deberá abrir el archivo `target/reports/apidocs/index.html`.
+
 
 Documentación
 - https://vaadin.com/docs/latest/hilla/guides/endpoints

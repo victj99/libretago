@@ -14,18 +14,15 @@ import com.utp.libretago.entity.Notificacion;
 
 /**
  * Repositorio para la gestión de la entidad {@link Notificacion}.
- * <p>
+ *
  * Extiende {@link JpaRepository} para proporcionar las operaciones básicas de persistencia (crear, leer, actualizar,
  * eliminar) y {@link JpaSpecificationExecutor} para ejecutar consultas dinámicas mediante especificaciones.
- * </p>
  *
- * <p>
  * Incluye métodos personalizados para:
  * <ul>
  * <li>Inactivar notificaciones de manera lógica (sin eliminarlas físicamente).</li>
  * <li>Listar notificaciones activas y aprobadas asociadas a uno o más grupos.</li>
  * </ul>
- * </p>
  *
  * @see Notificacion
  * @see org.springframework.data.jpa.repository.JpaRepository

@@ -24,15 +24,16 @@ import jakarta.annotation.security.RolesAllowed;
 /**
  * Endpoint que expone las operaciones disponibles para la gestión de alumnos.
  * <p>
- * Este endpoint está restringido al rol {@link RolesEnum#COLEGIO} y permite
- * realizar operaciones de búsqueda, creación, edición, inactivación y validación
- * de datos de alumnos. Utiliza {@link AlumnoService} como capa de negocio.
- * </p>
+ * Este endpoint está restringido al rol {@link RolesEnum#COLEGIO} y permite realizar operaciones de búsqueda, creación,
+ * edición, inactivación y validación de datos de alumnos. Utiliza {@link AlumnoService} como capa de negocio.
  *
- * <p>
- * Integra con la seguridad de la aplicación mediante {@link AppUser} para obtener
- * la institución educativa asociada al usuario autenticado.
- * </p>
+ * Integra con la seguridad de la aplicación mediante {@link AppUser} para obtener la institución educativa asociada al
+ * usuario autenticado. Este endpoint está restringido al rol {@link RolesEnum#COLEGIO} y permite realizar operaciones
+ * de búsqueda, creación, edición, inactivación y validación de datos de alumnos. Utiliza {@link AlumnoService} como
+ * capa de negocio.
+ *
+ * Integra con la seguridad de la aplicación mediante {@link AppUser} para obtener la institución educativa asociada al
+ * usuario autenticado.
  *
  * @author Jhon Peña
  * @version 1.0
@@ -46,14 +47,12 @@ public class AlumnoEndpoint {
     private AlumnoService alumnoService;
 
     /**
-     * Busca alumnos aplicando los filtros definidos y devuelve los resultados
-     * de manera paginada.
+     * Busca alumnos aplicando los filtros definidos y devuelve los resultados de manera paginada.
      * <p>
-     * Si el objeto {@link Pageable} no incluye orden, se aplicará una ordenación
-     * descendente por el campo <code>id</code>.
+     * Si el objeto {@link Pageable} no incluye orden, se aplicará una ordenación descendente por el campo <code>id</code>.
      * </p>
      *
-     * @param filtro objeto {@link FiltroAlumno} con los criterios de búsqueda.
+     * @param filtro   objeto {@link FiltroAlumno} con los criterios de búsqueda.
      * @param pageable información de paginación y orden.
      * @return una página de {@link AlumnoDTO} con los alumnos que cumplen los filtros.
      */
@@ -67,8 +66,7 @@ public class AlumnoEndpoint {
      * Obtiene la información de un alumno a partir de su identificador.
      *
      * @param id identificador único del alumno.
-     * @return un {@link AlumnoDTO} con la información del alumno, o {@code null}
-     *         si no existe o está inactivo.
+     * @return un {@link AlumnoDTO} con la información del alumno, o {@code null} si no existe o está inactivo.
      */
     public AlumnoDTO obtenerAlumno(Long id) {
         var ie = alumnoService.obtenerPorId(id);
@@ -90,7 +88,7 @@ public class AlumnoEndpoint {
     /**
      * Actualiza los datos de un alumno existente.
      *
-     * @param id identificador del alumno que se desea editar.
+     * @param id   identificador del alumno que se desea editar.
      * @param data objeto {@link AlumnoDTO} con los nuevos datos.
      * @return el identificador del alumno actualizado.
      */
@@ -110,8 +108,8 @@ public class AlumnoEndpoint {
     }
 
     /**
-     * Lista alumnos activos cuyos códigos se encuentren en una lista y que
-     * pertenezcan a la institución del usuario autenticado.
+     * Lista alumnos activos cuyos códigos se encuentren en una lista y que pertenezcan a la institución del usuario
+     * autenticado.
      *
      * @param codigosAlumno lista de códigos de alumnos.
      * @return lista de {@link Alumno2DTO} con la información básica de los alumnos.
@@ -125,8 +123,8 @@ public class AlumnoEndpoint {
     /**
      * Valida el contenido de un archivo Excel con datos de alumnos.
      * <p>
-     * Este método revisa la estructura, formato y consistencia de los datos,
-     * devolviendo los registros válidos o un archivo con los errores detectados.
+     * Este método revisa la estructura, formato y consistencia de los datos, devolviendo los registros válidos o un archivo
+     * con los errores detectados.
      * </p>
      *
      * @param file archivo Excel cargado por el usuario.

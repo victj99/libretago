@@ -15,11 +15,10 @@ import com.utp.libretago.classes.filtros.FiltroAlumno;
 
 /**
  * Servicio que define las operaciones de negocio relacionadas con los alumnos.
- * <p>
- * Esta interfaz abstrae la lógica necesaria para gestionar alumnos dentro del
- * sistema Libretago, incluyendo filtrado, creación, actualización,
- * inactivación y validación de datos provenientes de archivos Excel.
- * </p>
+ *
+ * Esta interfaz abstrae la lógica necesaria para gestionar alumnos dentro del sistema Libretago, incluyendo filtrado,
+ * creación, actualización, inactivación y validación de datos provenientes de archivos Excel.
+ *
  *
  * @author Jhon
  * @version 1.0
@@ -30,18 +29,18 @@ public interface AlumnoService {
     /**
      * Busca alumnos según los filtros establecidos y devuelve los resultados de forma paginada.
      *
-     * @param filtro objeto {@link FiltroAlumno} que contiene los criterios de búsqueda
-     *               (como nombre, institución, estado, etc.).
+     * @param filtro   objeto {@link FiltroAlumno} que contiene los criterios de búsqueda (como nombre, institución, estado,
+     *                 etc.).
      * @param pageable objeto {@link Pageable} que define la paginación y orden de los resultados.
      * @return una página de {@link AlumnoDTO} que cumplen con los criterios especificados.
      */
     Page<AlumnoDTO> buscarAlumnosPorFiltros(FiltroAlumno filtro, Pageable pageable);
 
     /**
-     * Lista alumnos activos cuyos códigos se encuentren dentro de una lista determinada
-     * y pertenezcan a una institución educativa específica.
+     * Lista alumnos activos cuyos códigos se encuentren dentro de una lista determinada y pertenezcan a una institución
+     * educativa específica.
      *
-     * @param codigos lista de códigos de alumnos.
+     * @param codigos                lista de códigos de alumnos.
      * @param institucionEducativaId identificador de la institución educativa.
      * @return lista de {@link Alumno2DTO} con los alumnos encontrados.
      */
@@ -51,15 +50,14 @@ public interface AlumnoService {
      * Obtiene un alumno específico según su identificador único.
      *
      * @param id identificador del alumno.
-     * @return un {@link Optional} que contiene el {@link AlumnoDTO} si existe,
-     *         o vacío si no se encontró.
+     * @return un {@link Optional} que contiene el {@link AlumnoDTO} si existe, o vacío si no se encontró.
      */
     Optional<AlumnoDTO> obtenerPorId(Long id);
 
     /**
      * Crea un nuevo alumno en la base de datos, asociado a una institución educativa.
      *
-     * @param alumno objeto {@link AlumnoDTO} con los datos del alumno a registrar.
+     * @param alumno        objeto {@link AlumnoDTO} con los datos del alumno a registrar.
      * @param institucionId identificador de la institución educativa.
      * @return el {@link AlumnoDTO} recién creado.
      */
@@ -68,7 +66,7 @@ public interface AlumnoService {
     /**
      * Actualiza la información de un alumno existente.
      *
-     * @param id identificador del alumno a actualizar.
+     * @param id     identificador del alumno a actualizar.
      * @param alumno objeto {@link AlumnoDTO} con los nuevos datos.
      * @return el {@link AlumnoDTO} actualizado.
      */
@@ -89,8 +87,7 @@ public interface AlumnoService {
      * </p>
      *
      * @param file archivo Excel cargado por el usuario.
-     * @return un objeto {@link ExcelValidadoDTO} que contiene la lista de alumnos válidos
-     *         y los errores detectados.
+     * @return un objeto {@link ExcelValidadoDTO} que contiene la lista de alumnos válidos y los errores detectados.
      * @throws IOException si ocurre un error al leer el archivo.
      */
     ExcelValidadoDTO<AlumnoDTO> validarArchivo(MultipartFile file) throws IOException;

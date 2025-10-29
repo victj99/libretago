@@ -16,11 +16,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * Endpoint responsable de gestionar las notificaciones visibles para los usuarios con rol APODERADO.
  * <p>
- * Este endpoint permite que un apoderado consulte las notificaciones que le han sido asignadas,
- * aplicando filtros de paginación y ordenamiento.
+ * Este endpoint permite que un apoderado consulte las notificaciones que le han sido asignadas, aplicando filtros de
+ * paginación y ordenamiento.
  * </p>
  *
- * <p><b>Seguridad:</b> Solo los usuarios con el rol {@link RolesEnum#APODERADO} pueden acceder a este endpoint.</p>
+ * <p>
+ * <b>Seguridad:</b> Solo los usuarios con el rol {@link RolesEnum#APODERADO} pueden acceder a este endpoint.
+ * </p>
  *
  * @author Roberto Anton
  * @version 1.0
@@ -33,27 +35,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 public class NotificacionUsuarioEndpoint {
 
     /**
-         * Servicio encargado de la lógica de negocio relacionada con notificaciones.
-         * Se utiliza para obtener las notificaciones asociadas a un apoderado.
+     * Servicio encargado de la lógica de negocio relacionada con notificaciones. Se utiliza para obtener las notificaciones
+     * asociadas a un apoderado.
      */
     @Autowired
     private NotificacionService notificacionService;
-    
+
     /**
-         * Obtiene la lista de notificaciones asociadas al usuario apoderado actualmente autenticado.
-         * <p>
-         * Este método:
-         * <ul>
-         *     <li>Recupera el usuario activo desde el contexto de seguridad.</li>
-         *     <li>Consulta las notificaciones vinculadas a su identificador.</li>
-         *     <li>Devuelve los resultados paginados según la configuración del parámetro {@code pageable}.</li>
-         * </ul>
-         * </p>
-         *
-         * @param pageable Configuración de paginación y ordenamiento.
-         * @return Página de {@link NotificacionDTO} correspondientes al apoderado autenticado.
+     * Obtiene la lista de notificaciones asociadas al usuario apoderado actualmente autenticado.
+     *
+     * Este método:
+     * <ul>
+     * <li>Recupera el usuario activo desde el contexto de seguridad.</li>
+     * <li>Consulta las notificaciones vinculadas a su identificador.</li>
+     * <li>Devuelve los resultados paginados según la configuración del parámetro {@code pageable}.</li>
+     * </ul>
+     *
+     * @param pageable Configuración de paginación y ordenamiento.
+     * @return Página de {@link NotificacionDTO} correspondientes al apoderado autenticado.
      */
-    
+
     @NonNull
     public Page<@NonNull NotificacionDTO> listarNotificacionesUsuario(Pageable pageable) {
         // Obtenemos el usuario autenticado desde el contexto de seguridad

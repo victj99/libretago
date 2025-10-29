@@ -8,19 +8,17 @@ import com.utp.libretago.entity.TokenDispositivo;
 
 /**
  * Repositorio para la gestión de la entidad {@link TokenDispositivo}.
- * <p>
- * Extiende {@link JpaRepository} para ofrecer operaciones CRUD básicas sobre los tokens
- * de dispositivos móviles o web registrados por los usuarios del sistema.
- * </p>
  *
- * <p>
+ * Extiende {@link JpaRepository} para ofrecer operaciones CRUD básicas sobre los tokens de dispositivos móviles o web
+ * registrados por los usuarios del sistema.
+ *
+ *
  * Incluye consultas personalizadas para:
  * <ul>
- *   <li>Listar tokens de varios usuarios a partir de sus identificadores.</li>
- *   <li>Buscar un token específico para validación o autenticación.</li>
- *   <li>Eliminar un token cuando deja de ser válido o se cierra sesión.</li>
+ * <li>Listar tokens de varios usuarios a partir de sus identificadores.</li>
+ * <li>Buscar un token específico para validación o autenticación.</li>
+ * <li>Eliminar un token cuando deja de ser válido o se cierra sesión.</li>
  * </ul>
- * </p>
  *
  * @see TokenDispositivo
  * @see org.springframework.data.jpa.repository.JpaRepository
