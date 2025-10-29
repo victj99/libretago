@@ -92,7 +92,7 @@ public class FiltroUsuario {
             if (nombreCompleto != null && !nombreCompleto.isBlank()) {
                 Expression<String> campo = alumnoRoot.get("nombreCompleto");
                 predicates.add(builder.like(builder.lower(campo), "%" + nombreCompleto.toLowerCase() + "%"));
-            
+            }
             
             // Filtro por institución educativa
             if (institucionEducativaId != null) {
@@ -111,4 +111,4 @@ public class FiltroUsuario {
             return builder.and(predicates.toArray(new Predicate[0]));
         };
     }
-};
+}
