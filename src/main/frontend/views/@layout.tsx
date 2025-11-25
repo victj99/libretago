@@ -5,7 +5,7 @@ import { useAuth } from 'Frontend/security/auth'
 import { useRegistroFirebase } from 'Frontend/security/useRegistroFisebase'
 import { Suspense, useEffect, useRef } from 'react'
 import { AiFillNotification } from "react-icons/ai"
-import { FaSchoolFlag, FaUserGraduate, FaUsers } from "react-icons/fa6"
+import { FaCalendarDay, FaSchoolFlag, FaUserGraduate, FaUsers } from "react-icons/fa6"
 import { IconType } from 'react-icons/lib'
 import { RiContactsBook3Fill } from "react-icons/ri"
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
@@ -18,6 +18,8 @@ const IconosPaginas: Record<string, IconType> = {
   "/grupos": RiContactsBook3Fill,
   "/administrar-notificaciones": AiFillNotification,
   "/notificaciones": AiFillNotification,
+  "/eventos": FaCalendarDay,
+  "/administrar-eventos": FaCalendarDay,
 }
 
 function Header() {
@@ -35,12 +37,25 @@ function MainMenu() {
   const location = useLocation()
   const { logout, state } = useAuth()
 
+  // @ts-ignore
+  const nombreInstitucion = state.user?.nombreInstitucion
+
   return (
     <SideNav
       className="mx-m"
       location={location}
       onNavigate={({ path }) => path != null && navigate(path)}
     >
+      <div className="px-m py-s mb-s border-b border-contrast-10">
+        <div className="font-semibold text-body">{state.user?.name}</div>
+        {nombreInstitucion && (
+          <div className="text-xs text-secondary flex items-center gap-xs">
+            <Icon icon="vaadin:institution" className="icon-xs" />
+            {nombreInstitucion}
+          </div>
+        )}
+      </div>
+
       {createMenuItems().map(({ to, icon, title }) => {
         const Icono = IconosPaginas[to]
 

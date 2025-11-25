@@ -44,6 +44,9 @@ public class FiltroNotificacion {
     /** Título de la notificación. */
     String titulo;
 
+    /** ID de la institución educativa asociada a la notificación. */
+    Long institucionEducativaId;
+
     /** Estado de la notificación. */
     String estado;
 
@@ -57,6 +60,7 @@ public class FiltroNotificacion {
      * Cada campo se evalúa de manera independiente:
      * <ul>
      * <li><b>titulo:</b> se aplica un filtro LIKE (búsqueda parcial, insensible a mayúsculas/minúsculas)</li>
+     * <li><b>institucionEducativaId:</b> se aplica un filtro EQUAL a través de los grupos asociados (exacto)</li>
      * <li><b>estado:</b> se aplica un filtro EQUAL (exacto)</li>
      * </ul>
      * Solo los campos no nulos y no vacíos se incluyen en la consulta.
@@ -65,12 +69,20 @@ public class FiltroNotificacion {
      */
     public Specification<Notificacion> generarFiltroNotificacion() {
         return (root, query, builder) -> {
+            query.distinct(true);
             List<Predicate> predicates = new ArrayList<>();
 
             // Filtro por título
             if (titulo != null && !titulo.isBlank()) {
                 Expression<String> campo = root.get("titulo");
                 predicates.add(builder.like(builder.lower(campo), "%" + titulo.toLowerCase() + "%"));
+            }
+
+            // Filtro por institución educativa
+            if (institucionEducativaId != null) {
+                var gruposJoin = root.join("notificacionGrupos").join("grupo");
+                Expression<Long> campo = gruposJoin.get("institucionEducativaId");
+                predicates.add(builder.equal(campo, institucionEducativaId));
             }
 
             // Filtro por estado

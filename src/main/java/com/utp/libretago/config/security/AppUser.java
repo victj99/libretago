@@ -24,4 +24,18 @@ public class AppUser extends User {
     public Long getInstitucionEducativaId() {
         return institucionEducativaId;
     }
+
+    /**
+     * Verifica si el usuario tiene un rol específico.
+     * <p>
+     * Este método busca en las autoridades del usuario si existe un rol que coincida con el nombre proporcionado (agregando
+     * el prefijo "ROLE_" automáticamente).
+     * </p>
+     *
+     * @param role nombre del rol a verificar (sin el prefijo "ROLE_")
+     * @return {@code true} si el usuario tiene el rol especificado, {@code false} en caso contrario
+     */
+    public boolean hasRole(String role) {
+        return getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + role));
+    }
 }

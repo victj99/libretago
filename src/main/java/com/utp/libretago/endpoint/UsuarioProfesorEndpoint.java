@@ -57,8 +57,12 @@ public class UsuarioProfesorEndpoint {
     public Page<@NonNull UsuarioInstitucionDTO> buscarPorFiltros(FiltroUsuario filtro, Pageable pageable) {
         // Aplica orden descendente por defecto (por ID)
         pageable = Reutilizables.ordernarPorDefectoDesc(pageable, "usuarioColegioId");
+
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         // Filtra solo usuarios con rol de profesor
         filtro.setRolId(Rol.ID_PROFESOR);
+        filtro.setInstitucionEducativaId(appUser.getInstitucionEducativaId());
+
         // Retorna la lista paginada de profesores
         return usuarioService.buscarUsuarioInstitucionPorFiltros(filtro, pageable);
     }
@@ -139,11 +143,15 @@ public class UsuarioProfesorEndpoint {
      */
     @NonNull
     public List<@NonNull LabelValueDTO> listarUsuarios(Pageable pageable, String nombre) {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         // Crea el filtro de búsqueda
         FiltroUsuario filtro = new FiltroUsuario();
         filtro.setNombreCompleto(nombre);
         // Limita la búsqueda a usuarios con rol de profesor
         filtro.setRolId(Rol.ID_PROFESOR);
+        filtro.setInstitucionEducativaId(appUser.getInstitucionEducativaId());
+
         // Llama al servicio para obtener los resultados paginados
         return usuarioService.listarUsuariosPorNombre(pageable, filtro);
     }

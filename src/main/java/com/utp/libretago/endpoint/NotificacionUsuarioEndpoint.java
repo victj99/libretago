@@ -31,7 +31,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @Endpoint
 // Solo los apoderados pueden acceder a este endpoint
-@RolesAllowed({ RolesEnum.APODERADO })
+@RolesAllowed({ RolesEnum.APODERADO, RolesEnum.PROFESOR })
 public class NotificacionUsuarioEndpoint {
 
     /**
@@ -52,14 +52,32 @@ public class NotificacionUsuarioEndpoint {
      * </ul>
      *
      * @param pageable Configuración de paginación y ordenamiento.
+     * @param tipo     Tipo de notificaciones a listar: "RECIBIDAS" (por defecto) o "ENVIADAS".
      * @return Página de {@link NotificacionDTO} correspondientes al apoderado autenticado.
      */
 
     @NonNull
-    public Page<@NonNull NotificacionDTO> listarNotificacionesUsuario(Pageable pageable) {
+    public Page<@NonNull NotificacionDTO> listarNotificacionesUsuario(Pageable pageable, String tipo) {
         // Obtenemos el usuario autenticado desde el contexto de seguridad
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if ("ENVIADAS".equalsIgnoreCase(tipo) && appUser.hasRole(RolesEnum.PROFESOR)) {
+            return notificacionService.listarNotificacionesPorUsuarioCreadorId(appUser.getId(), pageable);
+        }
+
         // Llamamos al servicio para obtener las notificaciones paginadas del apoderado
         return notificacionService.listarNotificacionesPorApoderadoId(appUser.getId(), pageable);
+    }
+
+    /**
+     * Crea una nueva notificación en el sistema.
+     * 
+     * @param notificacionDTO datos de la notificación a crear
+     * @return el ID de la notificación creada
+     */
+    @RolesAllowed({ RolesEnum.PROFESOR })
+    public Long crearNotificacion(NotificacionDTO notificacionDTO) {
+        var notificacion = notificacionService.crearNotificacion(notificacionDTO);
+        return notificacion.getId();
     }
 }

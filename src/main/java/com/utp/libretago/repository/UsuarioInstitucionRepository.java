@@ -1,6 +1,5 @@
 package com.utp.libretago.repository;
 
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -35,23 +34,34 @@ import com.utp.libretago.entity.UsuarioInstitucionId;
  * @since 2025-10
  */
 public interface UsuarioInstitucionRepository
-                extends JpaRepository<UsuarioInstitucion, UsuarioInstitucionId>, JpaSpecificationExecutor<UsuarioInstitucion> {
+        extends JpaRepository<UsuarioInstitucion, UsuarioInstitucionId>, JpaSpecificationExecutor<UsuarioInstitucion> {
 
-        /**
-         * Busca la relación {@link UsuarioInstitucion} correspondiente a un usuario del colegio.
-         *
-         * @param usuarioId identificador único del usuario del colegio.
-         * @return un {@link Optional} que contiene la relación encontrada, o vacío si no existe.
-         */
-        @Query("SELECT ui FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
-        Optional<UsuarioInstitucion> findByUsuarioColegioId(Long usuarioId);
+    /**
+     * Busca la relación {@link UsuarioInstitucion} correspondiente a un usuario del colegio.
+     *
+     * @param usuarioId identificador único del usuario del colegio.
+     * @return una lista de relaciones encontradas.
+     */
+    @Query("SELECT ui FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
+    java.util.List<UsuarioInstitucion> findByUsuarioColegioId(Long usuarioId);
 
-        /**
-         * Recupera el identificador de la institución educativa asociada a un usuario del colegio.
-         *
-         * @param usuarioId identificador único del usuario del colegio.
-         * @return identificador de la institución educativa asociada, o {@code null} si no existe relación.
-         */
-        @Query("SELECT ui.institucionEducativaId FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
-        Long findIdColegioByIdUsuario(Long usuarioId);
+    /**
+     * Recupera el identificador de la institución educativa asociada a un usuario del colegio.
+     *
+     * @param usuarioId identificador único del usuario del colegio.
+     * @return lista de identificadores de las instituciones educativas asociadas.
+     */
+    @Query("SELECT ui.institucionEducativaId FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
+    java.util.List<Long> findIdColegioByIdUsuario(Long usuarioId);
+
+    /**
+     * Elimina la relación entre un usuario y una institución educativa específica.
+     * 
+     * @param usuarioId     ID del usuario.
+     * @param institucionId ID de la institución educativa.
+     * @return número de registros eliminados.
+     */
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("DELETE FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
+    int deleteByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
 }

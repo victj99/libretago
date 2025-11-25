@@ -73,12 +73,21 @@ public interface UsuarioService {
     Optional<UsuarioInstitucionDTO> obtenerPorId(Long id);
 
     /**
-     * Obtiene el identificador del colegio (institución educativa) al que pertenece un usuario.
+     * Obtiene el identificador del colegio (institución educativa) al que pertenece un usuario. Si pertenece a varios,
+     * devuelve el primero encontrado.
      * 
      * @param idUsuario el identificador del usuario.
      * @return el identificador de la institución educativa asociada.
      */
     Long obtenerIdColegioPorIdUsuario(Long idUsuario);
+
+    /**
+     * Lista todas las instituciones educativas asociadas a un usuario.
+     * 
+     * @param idUsuario el identificador del usuario.
+     * @return lista de {@link UsuarioInstitucionDTO}.
+     */
+    List<UsuarioInstitucionDTO> listarInstitucionesPorUsuario(Long idUsuario);
 
     /**
      * Busca un usuario por su nombre de usuario.

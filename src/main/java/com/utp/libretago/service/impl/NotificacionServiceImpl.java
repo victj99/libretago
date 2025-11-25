@@ -14,14 +14,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.NotificacionDTO;
 import com.utp.libretago.classes.filtros.FiltroNotificacion;
 import com.utp.libretago.config.security.AppUser;
+import com.utp.libretago.entity.Grupo;
 import com.utp.libretago.entity.Notificacion;
+import com.utp.libretago.entity.NotificacionGrupo;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.repository.AlumnoGrupoRepository;
+import com.utp.libretago.repository.GrupoRepository;
+import com.utp.libretago.repository.NotificacionGrupoRepository;
 import com.utp.libretago.repository.NotificacionRepository;
 import com.utp.libretago.service.FirebaseMessageService;
 import com.utp.libretago.service.NotificacionService;
@@ -30,18 +35,24 @@ import com.utp.libretago.utils.Reutilizables;
 import com.vaadin.hilla.exception.EndpointException;
 
 /**
-     * Implementación del servicio {@link NotificacionService} para la gestión de notificaciones.
-     * Incluye creación, actualización, búsqueda, inactivación y envío de notificaciones 
-     * mediante Firebase Cloud Messaging (FCM).
-     * @author Roberto 
-     * @version 1.0
-     * @since 2025-10-28
+ * Implementación del servicio {@link NotificacionService} para la gestión de notificaciones. Incluye creación,
+ * actualización, búsqueda, inactivación y envío de notificaciones mediante Firebase Cloud Messaging (FCM).
+ * 
+ * @author Roberto
+ * @version 1.0
+ * @since 2025-10-28
  */
 @Service
 public class NotificacionServiceImpl implements NotificacionService {
 
     @Autowired
     private NotificacionRepository notificacionRepository;
+
+    @Autowired
+    private NotificacionGrupoRepository notificacionGrupoRepository;
+
+    @Autowired
+    private GrupoRepository grupoRepository;
 
     @Autowired
     private TokenDispositivoService tokenDispositivoService;
@@ -51,12 +62,13 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Autowired
     private AlumnoGrupoRepository alumnoGrupoRepository;
-    
+
     /**
-         * Busca notificaciones aplicando filtros con paginación.
-         * @param filtro   Filtros de búsqueda.
-         * @param pageable Configuración de paginación.
-         * @return Página de resultados en formato {@link NotificacionDTO}.
+     * Busca notificaciones aplicando filtros con paginación.
+     * 
+     * @param filtro   Filtros de búsqueda.
+     * @param pageable Configuración de paginación.
+     * @return Página de resultados en formato {@link NotificacionDTO}.
      */
     @Override
     public Page<NotificacionDTO> buscarNotificacionesPorFiltros(FiltroNotificacion filtro, Pageable pageable) {
@@ -65,20 +77,34 @@ public class NotificacionServiceImpl implements NotificacionService {
     }
 
     /**
-         * Obtiene una notificación por su identificador.
-         * @param id ID de la notificación.
-         * @return Optional con la notificación en formato {@link NotificacionDTO}.
+     * Obtiene una notificación por su identificador.
+     * 
+     * @param id ID de la notificación.
+     * @return Optional con la notificación en formato {@link NotificacionDTO}.
      */
     @Override
     public Optional<NotificacionDTO> obtenerPorId(Long id) {
         // Buscar por ID y convertir a DTO con grupos asociados
-        return notificacionRepository.findById(id).map(Notificacion::obtenerNotificacionConGruposDTO);
+        Optional<Notificacion> notificacionOpt = notificacionRepository.findById(id);
+        if (!notificacionOpt.isPresent()) {
+            return Optional.empty();
+        }
+
+        Notificacion notificacion = notificacionOpt.get();
+        // Obtener los IDs de grupos asociados
+        List<Long> grupoIds = notificacionGrupoRepository.listarGrupoIdsPorNotificacionId(id);
+        // Cargar las entidades Grupo completas
+        List<Grupo> grupos = grupoRepository.findAllById(grupoIds);
+
+        return Optional.of(notificacion.obtenerNotificacionConGruposDTO(grupos));
     }
+
     /**
-         * Crea una nueva notificación. Si el usuario autenticado es del rol "COLEGIO",
-         * la notificación se aprueba automáticamente y se envía vía Firebase.
-         * @param notificacionDTO Datos de la notificación a crear.
-         * @return Notificación creada en formato {@link NotificacionDTO}.
+     * Crea una nueva notificación. Si el usuario autenticado es del rol "COLEGIO", la notificación se aprueba
+     * automáticamente y se envía vía Firebase.
+     * 
+     * @param notificacionDTO Datos de la notificación a crear.
+     * @return Notificación creada en formato {@link NotificacionDTO}.
      */
     @Override
     public NotificacionDTO crearNotificacion(NotificacionDTO notificacionDTO) {
@@ -86,46 +112,55 @@ public class NotificacionServiceImpl implements NotificacionService {
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         notificacionDTO.setUsuarioCreadorId(appUser.getId());
         // Si el usuario es COLEGIO, se aprueba automáticamente
-        if (appUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + RolesEnum.COLEGIO))) {
+        if (appUser.hasRole(RolesEnum.COLEGIO)) {
             notificacionDTO.setEstado(Notificacion.ESTADO_APROBADO);
             notificacionDTO.setUsuarioEvaluadorId(appUser.getId());
         }
         // Convertir el DTO en entidad
         Notificacion notificacion = notificacionDTO.obtenerNotificacion();
-         // Registrar fecha de evaluación si ya fue aprobada
+        // Registrar fecha de evaluación si ya fue aprobada
         if (notificacion.getUsuarioEvaluador() != null) {
             notificacion.setFechaEvaluacion(LocalDateTime.now());
         }
         // Guardar la nueva notificación
         notificacion = notificacionRepository.save(notificacion);
 
+        // Guardar las relaciones con grupos en la tabla intermedia
+        if (notificacionDTO.getGrupos() != null && !notificacionDTO.getGrupos().isEmpty()) {
+            for (var grupoDTO : notificacionDTO.getGrupos()) {
+                NotificacionGrupo notificacionGrupo = new NotificacionGrupo(notificacion.getId(), grupoDTO.value());
+                notificacionGrupoRepository.save(notificacionGrupo);
+            }
+        }
+
         if (notificacion.getEstado().equals(Notificacion.ESTADO_APROBADO)) {
             // Send notification to all associated groups
-            enviarNotificacionFirebase(notificacion, appUser.getInstitucionEducativaId());
+            enviarNotificacionFirebase(notificacion.getId(), appUser.getInstitucionEducativaId());
         }
 
         return notificacion.obtenerNotificacionDTO();
     }
-    
+
     /**
-     * Actualiza una notificación existente.
-     * Solo los usuarios con rol "COLEGIO" pueden modificar notificaciones aprobadas.
+     * Actualiza una notificación existente. Solo los usuarios con rol "COLEGIO" pueden modificar notificaciones aprobadas.
+     * 
      * @param id              ID de la notificación a actualizar.
      * @param notificacionDTO Datos actualizados.
      * @return Notificación actualizada en formato {@link NotificacionDTO}.
      */
     @Override
+    @Transactional
     public NotificacionDTO actualizarNotificacion(Long id, NotificacionDTO notificacionDTO) {
         Optional<Notificacion> existing = notificacionRepository.findById(id);
         // Si no existe, se retorna null
         if (!existing.isPresent())
             return null;
-          // Obtener usuario autenticado
+        // Obtener usuario autenticado
         Notificacion notificacion = existing.get();
 
         // Validar permisos: un profesor no puede modificar notificaciones aprobadas
         AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        boolean esColegio = appUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_" + RolesEnum.COLEGIO));
+        boolean esColegio = appUser.hasRole(RolesEnum.COLEGIO);
 
         if (!esColegio && notificacion.getEstado().equals(Notificacion.ESTADO_APROBADO)) {
             throw new EndpointException("No tiene permiso para modificar la notificación");
@@ -143,30 +178,42 @@ public class NotificacionServiceImpl implements NotificacionService {
 
         notificacion = notificacionRepository.save(notificacion);
 
+        // Actualizar grupos: eliminar relaciones existentes y crear nuevas
+        notificacionGrupoRepository.eliminarPorNotificacionId(id);
+        if (notificacionDTO.getGrupos() != null && !notificacionDTO.getGrupos().isEmpty()) {
+            for (var grupoDTO : notificacionDTO.getGrupos()) {
+                NotificacionGrupo notificacionGrupo = new NotificacionGrupo(id, grupoDTO.value());
+                notificacionGrupoRepository.save(notificacionGrupo);
+            }
+        }
+
         // Enviar FCM si se acaba de aprobar (P → A)
         if (estadoAnterior.equals(Notificacion.ESTADO_PENDIENTE) && notificacion.getEstado().equals(Notificacion.ESTADO_APROBADO)) {
-            enviarNotificacionFirebase(notificacion, appUser.getInstitucionEducativaId());
+            enviarNotificacionFirebase(id, appUser.getInstitucionEducativaId());
         }
 
         return notificacion.obtenerNotificacionDTO();
     }
+
     /**
-         * Inactiva una notificación según su identificador.
-         * @param id ID de la notificación a inactivar.
-         * @return Número de registros afectados.
+     * Inactiva una notificación según su identificador.
+     * 
+     * @param id ID de la notificación a inactivar.
+     * @return Número de registros afectados.
      */
     @Override
     public int inactivarById(Long id) {
-         // Marca la notificación como inactiva en la base de datos
+        // Marca la notificación como inactiva en la base de datos
         return notificacionRepository.inactivarNotificacionPorId(id);
     }
-    
+
     /**
-         * Lista las notificaciones visibles para un apoderado.
-         * Se ordenan por defecto de forma descendente (más recientes primero).
-         * @param apoderadoId ID del apoderado.
-         * @param pageable    Configuración de paginación.
-         * @return Página de notificaciones en formato {@link NotificacionDTO}.
+     * Lista las notificaciones visibles para un apoderado. Se ordenan por defecto de forma descendente (más recientes
+     * primero).
+     * 
+     * @param apoderadoId ID del apoderado.
+     * @param pageable    Configuración de paginación.
+     * @return Página de notificaciones en formato {@link NotificacionDTO}.
      */
     @Override
     public Page<NotificacionDTO> listarNotificacionesPorApoderadoId(Long apoderadoId, Pageable pageable) {
@@ -178,42 +225,67 @@ public class NotificacionServiceImpl implements NotificacionService {
         if (grupoIds == null || grupoIds.isEmpty()) {
             return Page.empty(pageable);
         }
-        
+
         // Buscar notificaciones vinculadas a esos grupos
         Page<Notificacion> notificaciones = notificacionRepository.findByGrupoIds(grupoIds, pageable);
         if (notificaciones.isEmpty()) {
             return Page.empty(pageable);
         }
-        
+
         // Convertir las entidades en DTOs
         return notificaciones.map(Notificacion::obtenerNotificacionDTO);
     }
 
     /**
-         * Envía una notificación aprobada a los dispositivos asociados a los grupos correspondientes.
-         * @param notificacion           Entidad {@link Notificacion} a enviar.
-         * @param institucionEducativaId ID de la institución educativa.
+     * Lista las notificaciones creadas por un usuario específico.
+     * 
+     * @param usuarioCreadorId ID del usuario creador.
+     * @param pageable         Configuración de paginación.
+     * @return Página de notificaciones en formato {@link NotificacionDTO}.
      */
-    private void enviarNotificacionFirebase(Notificacion notificacion, Long institucionEducativaId) {
+    @Override
+    public Page<NotificacionDTO> listarNotificacionesPorUsuarioCreadorId(Long usuarioCreadorId, Pageable pageable) {
+        pageable = Reutilizables.ordernarPorDefectoDesc(pageable, "id");
+        return notificacionRepository.findByUsuarioCreadorIdAndActivoTrue(usuarioCreadorId, pageable).map(Notificacion::obtenerNotificacionDTO);
+    }
+
+    /**
+     * Envía una notificación aprobada a los dispositivos asociados a los grupos correspondientes.
+     * 
+     * @param notificacionId         ID de la notificación a enviar.
+     * @param institucionEducativaId ID de la institución educativa.
+     */
+    private void enviarNotificacionFirebase(Long notificacionId, Long institucionEducativaId) {
+        // Cargar la notificación
+        Optional<Notificacion> notificacionOpt = notificacionRepository.findById(notificacionId);
+        if (!notificacionOpt.isPresent()) {
+            return;
+        }
+
+        Notificacion notificacion = notificacionOpt.get();
         Set<String> tokensSet = new HashSet<>();
+
+        // Obtener los IDs de grupos asociados a la notificación
+        List<Long> grupoIds = notificacionGrupoRepository.listarGrupoIdsPorNotificacionId(notificacionId);
+
         // Recorrer los grupos asociados a la notificación
-        if (notificacion.getGrupos() != null) {
-            for (var item : notificacion.getGrupos()) {
-                 // Obtener tokens de los dispositivos de los alumnos
-                List<String> tokens = tokenDispositivoService.listarTokensPorGrupoId(item.getId(), institucionEducativaId);
+        if (grupoIds != null && !grupoIds.isEmpty()) {
+            for (Long grupoId : grupoIds) {
+                // Obtener tokens de los dispositivos de los alumnos
+                List<String> tokens = tokenDispositivoService.listarTokensPorGrupoId(grupoId, institucionEducativaId);
                 if (tokens != null && !tokens.isEmpty()) {
                     // Evitar duplicados
                     tokensSet.addAll(tokens);
                 }
             }
         }
-        
+
         // Enviar notificación si existen tokens
         if (!tokensSet.isEmpty()) {
             // Título del mensaje
-            fcmService.sendNotification(notificacion.getTitulo(), 
+            fcmService.sendNotification(notificacion.getTitulo(),
                     // Contenido del mensaje
-                    notificacion.getDetalle(), 
+                    notificacion.getDetalle(),
                     // Datos adicionales
                     Map.of("notificacionId", notificacion.getId().toString()),
                     // Conversión del Set a lista

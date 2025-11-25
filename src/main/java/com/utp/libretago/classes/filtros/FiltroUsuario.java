@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.utp.libretago.entity.UsuarioInstitucion;
 
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.Getter;
 import lombok.Setter;
@@ -77,29 +78,30 @@ public class FiltroUsuario {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
             // Se hace join con la entidad "usuarioColegio"
-            var alumnoRoot = root.join("usuarioColegio");
+            root.fetch("usuarioColegio", JoinType.INNER);
+            var usuarioRoot = root.join("usuarioColegio");
 
             // Filtro por nombre de usuario
             if (nombreUsuario != null && !nombreUsuario.isBlank()) {
-                Expression<String> campo = alumnoRoot.get("nombreUsuario");
+                Expression<String> campo = usuarioRoot.get("nombreUsuario");
                 predicates.add(builder.like(builder.lower(campo), "%" + nombreUsuario.toLowerCase() + "%"));
             }
 
             // Filtro por nombre completo
             if (nombreCompleto != null && !nombreCompleto.isBlank()) {
-                Expression<String> campo = alumnoRoot.get("nombreCompleto");
+                Expression<String> campo = usuarioRoot.get("nombreCompleto");
                 predicates.add(builder.like(builder.lower(campo), "%" + nombreCompleto.toLowerCase() + "%"));
             }
 
             // Filtro por institución educativa
             if (institucionEducativaId != null) {
-                Expression<Long> campo = alumnoRoot.get("institucionEducativaId");
+                Expression<Long> campo = root.get("institucionEducativaId");
                 predicates.add(builder.equal(campo, institucionEducativaId));
 
             }
             // Filtro por rol
             if (rolId != null) {
-                var rolesJoin = alumnoRoot.join("roles");
+                var rolesJoin = usuarioRoot.join("roles");
                 predicates.add(builder.equal(rolesJoin.get("id"), rolId));
                 query.distinct(true);
             }

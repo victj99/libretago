@@ -1,7 +1,7 @@
 import { useForm } from "@vaadin/hilla-react-form"
-import { Button, Notification, RadioButton, RadioGroup, TextArea, TextField } from "@vaadin/react-components"
-import NotificacionDTOModel from "Frontend/generated/com/utp/libretago/classes/dto/NotificacionDTOModel"
-import { AdministrarNotificacionEndpoint, GrupoEndpoint, NotificacionUsuarioEndpoint } from "Frontend/generated/endpoints"
+import { Button, DateTimePicker, Notification, RadioButton, RadioGroup, TextArea, TextField } from "@vaadin/react-components"
+import EventoDTOModel from "Frontend/generated/com/utp/libretago/classes/dto/EventoDTOModel"
+import { AdministrarEventoEndpoint, EventoUsuarioEndpoint, GrupoEndpoint } from "Frontend/generated/endpoints"
 import { useAuth } from "Frontend/security/auth"
 import handleError from "Frontend/views/_ErrorHandler"
 import { useEffect, useState } from "react"
@@ -9,12 +9,12 @@ import { ComboBoxFilterMultiple } from "../common/ComboBoxFilter"
 import { useConfirm } from "../common/ConfirmDialog"
 import LoadingOverlay from "../LoadingOverlay"
 
-interface NotificacionFormProps {
-  notificacionId?: number
-  onCerrar: (notificacionId?: number) => void
+interface EventoFormProps {
+  eventoId?: number
+  onCerrar: (eventoId?: number) => void
 }
 
-export function NotificacionForm(props: NotificacionFormProps) {
+export function EventoForm(props: EventoFormProps) {
   const [puedeEvaluar, setPuedeEvaluar] = useState(false)
   const [loading, setLoading] = useState(false)
   const [gruposDefecto, setGruposDefecto] = useState<any[] | undefined>()
@@ -22,11 +22,11 @@ export function NotificacionForm(props: NotificacionFormProps) {
   const confirmDialog = useConfirm()
   const { hasAccess } = useAuth()
 
-  const { model, field, submit, read, clear } = useForm(NotificacionDTOModel, {
+  const { model, field, submit, read, clear } = useForm(EventoDTOModel, {
     onSubmit: async (e) => {
       const confirm = await confirmDialog({
         header: 'Registrar',
-        text: '¿Desea registrar la notificación?',
+        text: '¿Desea registrar el evento?',
         cancelable: true,
       })
       if (!confirm) return
@@ -35,11 +35,11 @@ export function NotificacionForm(props: NotificacionFormProps) {
         let id
         if (hasAccess({ rolesAllowed: ['PROFESOR'] }) && !hasAccess({ rolesAllowed: ['COLEGIO'] })) {
           // Si es solo profesor, usa el endpoint de usuario
-          id = await NotificacionUsuarioEndpoint.crearNotificacion(e)
+          id = await EventoUsuarioEndpoint.crearEvento(e)
         } else {
-          id = await (props.notificacionId ?
-            AdministrarNotificacionEndpoint.editarNotificacion(props.notificacionId, e) :
-            AdministrarNotificacionEndpoint.crearNotificacion(e))
+          id = await (props.eventoId ?
+            AdministrarEventoEndpoint.editarEvento(props.eventoId, e) :
+            AdministrarEventoEndpoint.crearEvento(e))
         }
 
         Notification.show('Registrado con éxito', { position: 'bottom-end', theme: 'success' })
@@ -59,20 +59,20 @@ export function NotificacionForm(props: NotificacionFormProps) {
 
   useEffect(() => {
     limpiar()
-    if (!props.notificacionId) {
+    if (!props.eventoId) {
       return
     }
 
     setLoading(true)
-    AdministrarNotificacionEndpoint.obtenerNotificacion(props.notificacionId).then((notificacion) => {
-      if (notificacion && notificacion.id) {
-        read(notificacion)
-        setPuedeEvaluar(notificacion.estado === 'P' && hasAccess({ rolesAllowed: ['COLEGIO'] }))
+    AdministrarEventoEndpoint.obtenerEvento(props.eventoId).then((evento) => {
+      if (evento && evento.id) {
+        read(evento)
+        setPuedeEvaluar(evento.estado === 'P' && hasAccess({ rolesAllowed: ['COLEGIO'] }))
 
-        if (notificacion.grupos) setGruposDefecto(notificacion.grupos)
+        if (evento.grupos) setGruposDefecto(evento.grupos)
       }
     }).finally(() => setLoading(false))
-  }, [props.notificacionId])
+  }, [props.eventoId])
 
   return <>
     <LoadingOverlay mostrar={loading} />
@@ -87,11 +87,17 @@ export function NotificacionForm(props: NotificacionFormProps) {
         required
         {...field(model.detalle)}
       />
+      
+      <DateTimePicker
+        label="Fecha del Evento"
+        required
+        {...field(model.fechaEvento)}
+      />
 
       <ComboBoxFilterMultiple
         label="Grupo"
         required
-        readonly={!!props.notificacionId}
+        readonly={!!props.eventoId}
         // @ts-ignore
         defaultItems={gruposDefecto}
         fetcher={GrupoEndpoint.listarGruposPorNombre}
@@ -118,4 +124,3 @@ export function NotificacionForm(props: NotificacionFormProps) {
     </div>
   </>
 }
-

@@ -1,13 +1,12 @@
-import { useComboBoxDataProvider } from "@vaadin/hilla-react-crud"
 import { useForm, useFormArrayPart } from "@vaadin/hilla-react-form"
-import { Button, ComboBox, Grid, GridColumn, Notification, TextField } from "@vaadin/react-components"
+import { Button, Grid, GridColumn, Notification, TextField } from "@vaadin/react-components"
 import GrupoDTOModel from "Frontend/generated/com/utp/libretago/classes/dto/GrupoDTOModel"
 import { AlumnoEndpoint, GrupoEndpoint, UsuarioProfesorEndpoint } from "Frontend/generated/endpoints"
+import handleError from "Frontend/views/_ErrorHandler"
 import { useEffect, useState } from "react"
 import { MdDelete } from "react-icons/md"
 import { ComboBoxFilter } from "../common/ComboBoxFilter"
 import { useConfirm } from "../common/ConfirmDialog"
-import handleError from "Frontend/views/_ErrorHandler"
 
 export type GrupoFormProps = {
   grupoId?: number
@@ -15,6 +14,7 @@ export type GrupoFormProps = {
 }
 
 export function GrupoForm(props: GrupoFormProps) {
+  const [nombreProfesor, setNombreProfesor] = useState<string | undefined>()
   const [codigosAlumno, setCodigosAlumno] = useState('')
   const confirmDialog = useConfirm()
 
@@ -68,6 +68,7 @@ export function GrupoForm(props: GrupoFormProps) {
   }
 
   useEffect(() => {
+    setNombreProfesor('')
     if (!props.grupoId) {
       clear()
       return
@@ -79,6 +80,8 @@ export function GrupoForm(props: GrupoFormProps) {
         // Listamos los alumnos
         const listaAlumnos = await GrupoEndpoint.listarAlumnosPorGrupoId(grupo.id!)
         setValue(listaAlumnos)
+
+        setNombreProfesor(grupo.nombreProfesor)
       }
     })
   }, [props.grupoId])
@@ -97,9 +100,9 @@ export function GrupoForm(props: GrupoFormProps) {
       <ComboBoxFilter
         className="md:col-span-2"
         label='Profesor'
+        defaultLabel={nombreProfesor}
         fieldModel={model.usuarioProfesorId}
         fetcher={UsuarioProfesorEndpoint.listarUsuarios}
-        {...field(model.usuarioProfesorId)}
       />
 
       <div className="flex flex-row items-end gap-m">

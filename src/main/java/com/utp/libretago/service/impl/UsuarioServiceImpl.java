@@ -35,17 +35,20 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.utp.libretago.utils.ExcelUtils;
 import com.vaadin.hilla.exception.EndpointException;
+
 /**
-     * Implementación del servicio {@link UsuarioService}.
-     * Gestiona las operaciones relacionadas con los usuarios del sistema,
-     * incluyendo creación, actualización, búsqueda, inactivación y validación de usuarios a partir de archivos Excel.
-     *
-     * <p>Este servicio también maneja la relación entre usuarios y sus instituciones educativas,
-     * además de la asignación de roles según el tipo de usuario (profesor, apoderado, colegio, etc.).</p>
-     *
-     * @author Roberto
-     * @version 1.0
-     * @since 2025-10-28
+ * Implementación del servicio {@link UsuarioService}. Gestiona las operaciones relacionadas con los usuarios del
+ * sistema, incluyendo creación, actualización, búsqueda, inactivación y validación de usuarios a partir de archivos
+ * Excel.
+ *
+ * <p>
+ * Este servicio también maneja la relación entre usuarios y sus instituciones educativas, además de la asignación de
+ * roles según el tipo de usuario (profesor, apoderado, colegio, etc.).
+ * </p>
+ *
+ * @author Roberto
+ * @version 1.0
+ * @since 2025-10-28
  */
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
@@ -64,12 +67,13 @@ public class UsuarioServiceImpl implements UsuarioService {
     private static final int COL_CORREO = 2;
     private static final int COL_TELEFONO = 3;
     private static final int COL_ERRORES = 4;
-    
+
     /**
-         * Busca usuarios-institución según filtros aplicados.
-         * @param filtro   Objeto con criterios de búsqueda.
-         * @param pageable Configuración de paginación.
-         * @return Página de usuarios en formato {@link UsuarioInstitucionDTO}.
+     * Busca usuarios-institución según filtros aplicados.
+     * 
+     * @param filtro   Objeto con criterios de búsqueda.
+     * @param pageable Configuración de paginación.
+     * @return Página de usuarios en formato {@link UsuarioInstitucionDTO}.
      */
     @Override
     public Page<UsuarioInstitucionDTO> buscarUsuarioInstitucionPorFiltros(FiltroUsuario filtro, Pageable pageable) {
@@ -77,12 +81,13 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return datos.map(item -> item.obtenerUsuarioInstitucionDTO());
     }
-    
+
     /**
-         * Lista usuarios según su nombre, aplicando filtros y paginación.
-         * @param pageable Configuración de paginación.
-         * @param filtro   Criterios de búsqueda.
-         * @return Lista de usuarios con formato {@link LabelValueDTO}.
+     * Lista usuarios según su nombre, aplicando filtros y paginación.
+     * 
+     * @param pageable Configuración de paginación.
+     * @param filtro   Criterios de búsqueda.
+     * @return Lista de usuarios con formato {@link LabelValueDTO}.
      */
     @Override
     public List<LabelValueDTO> listarUsuariosPorNombre(Pageable pageable, FiltroUsuario filtro) {
@@ -93,46 +98,59 @@ public class UsuarioServiceImpl implements UsuarioService {
             return new LabelValueDTO(usuarioColegio.getNombreCompleto(), usuarioColegio.getId().toString());
         }).toList();
     }
-    
+
     /**
-         * Obtiene un usuario-institución por su ID.
-         * @param id ID del usuario.
-         * @return Optional con {@link UsuarioInstitucionDTO} si existe, vacío si no.
+     * Obtiene un usuario-institución por su ID. Si tiene múltiples instituciones, devuelve la primera.
+     * 
+     * @param id ID del usuario.
+     * @return Optional con {@link UsuarioInstitucionDTO} si existe, vacío si no.
      */
     @Override
     public Optional<UsuarioInstitucionDTO> obtenerPorId(Long id) {
-        var usuarioInstitucion = usuarioInstitucionRepository.findByUsuarioColegioId(id);
+        var usuarioInstituciones = usuarioInstitucionRepository.findByUsuarioColegioId(id);
 
-        if (!usuarioInstitucion.isPresent()) {
+        if (usuarioInstituciones.isEmpty()) {
             return Optional.empty();
         }
 
-        return Optional.of(usuarioInstitucion.get().obtenerUsuarioInstitucionDTO());
+        return Optional.of(usuarioInstituciones.get(0).obtenerUsuarioInstitucionDTO());
     }
-    
+
     /**
-         * Obtiene el ID de la institución educativa asociada a un usuario.
-         * @param idUsuario ID del usuario.
-         * @return ID de la institución educativa o {@code null} si no existe.
+     * Obtiene el ID de la institución educativa asociada a un usuario. Si tiene múltiples, devuelve el primero.
+     * 
+     * @param idUsuario ID del usuario.
+     * @return ID de la institución educativa o {@code null} si no existe.
      */
     @Override
     public Long obtenerIdColegioPorIdUsuario(Long idUsuario) {
-        return usuarioInstitucionRepository.findIdColegioByIdUsuario(idUsuario);
+        var ids = usuarioInstitucionRepository.findIdColegioByIdUsuario(idUsuario);
+        return (ids != null && !ids.isEmpty()) ? ids.get(0) : null;
     }
+
+    @Override
+    public List<UsuarioInstitucionDTO> listarInstitucionesPorUsuario(Long idUsuario) {
+        var usuarioInstituciones = usuarioInstitucionRepository.findByUsuarioColegioId(idUsuario);
+        return usuarioInstituciones.stream().map(UsuarioInstitucion::obtenerUsuarioInstitucionDTO).toList();
+    }
+
     /**
-         * Busca un usuario por su nombre de usuario.
-         * @param nombreUsuario Nombre de usuario.
-         * @return Objeto {@link Usuario} si existe.
+     * Busca un usuario por su nombre de usuario.
+     * 
+     * @param nombreUsuario Nombre de usuario.
+     * @return Objeto {@link Usuario} si existe.
      */
     @Override
     public Usuario obtenerPorNombreUsuario(String nombreUsuario) {
         var usuario = usuarioRepository.findByNombreUsuario(nombreUsuario);
         return usuario;
     }
+
     /**
-         * Busca un usuario por nombre de usuario e incluye sus roles.
-         * @param nombreUsuario Nombre de usuario.
-         * @return Usuario con roles cargados.
+     * Busca un usuario por nombre de usuario e incluye sus roles.
+     * 
+     * @param nombreUsuario Nombre de usuario.
+     * @return Usuario con roles cargados.
      */
     @Override
     public Usuario obtenerPorNombreUsuarioConRoles(String nombreUsuario) {
@@ -141,11 +159,12 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-         * Crea un nuevo usuario o le asigna un nuevo rol si ya existe.
-         * También asocia el usuario a una institución educativa si corresponde.
-         * @param usuarioDTO Datos del usuario a crear.
-         * @param rolId      ID del rol a asignar.
-         * @return Usuario creado en formato {@link UsuarioDTO}.
+     * Crea un nuevo usuario o le asigna un nuevo rol si ya existe. También asocia el usuario a una institución educativa si
+     * corresponde.
+     * 
+     * @param usuarioDTO Datos del usuario a crear.
+     * @param rolId      ID del rol a asignar.
+     * @return Usuario creado en formato {@link UsuarioDTO}.
      */
     @Override
     @Transactional
@@ -167,6 +186,17 @@ public class UsuarioServiceImpl implements UsuarioService {
             if (existente.getRoles().stream().noneMatch(rol -> rol.getId().equals(rolId))) {
                 existente.getRoles().add(new Rol(rolId));
                 existente = usuarioRepository.save(existente);
+            }
+
+            // Si es profesor, verificar y crear relación con la institución actual
+            if (rolId.equals(Rol.ID_PROFESOR) && usuarioDTO instanceof UsuarioInstitucionDTO) {
+                var ieId = ((UsuarioInstitucionDTO) usuarioDTO).getInstitucionEducativaId();
+                if (ieId != null) {
+                    var instituciones = usuarioInstitucionRepository.findIdColegioByIdUsuario(existente.getId());
+                    if (!instituciones.contains(ieId)) {
+                        usuarioInstitucionRepository.save(new UsuarioInstitucion(existente.getId(), ieId));
+                    }
+                }
             }
 
             usuarioDTO.setId(existente.getId());
@@ -191,8 +221,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return usuarioDTO;
     }
+
     /**
      * Actualiza los datos de un usuario existente.
+     * 
      * @param id      ID del usuario a actualizar.
      * @param usuario Datos nuevos del usuario.
      * @return Usuario actualizado en formato {@link UsuarioDTO}.
@@ -210,22 +242,47 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return usuario;
     }
+
     /**
-         * Inactiva un usuario según su ID.
-         * @param id ID del usuario.
-         * @return Número de registros afectados.
+     * Inactiva un usuario según su ID. Si es profesor, solo elimina la relación con la institución actual. Si no es
+     * profesor, inactiva el usuario globalmente.
+     * 
+     * @param id ID del usuario.
+     * @return Número de registros afectados.
      */
     @Override
     @Transactional
     public int inactivarById(Long id) {
+        var usuarioOpt = usuarioRepository.findById(id);
+        if (usuarioOpt.isEmpty())
+            return 0;
+
+        var usuario = usuarioOpt.get();
+        boolean esProfesor = usuario.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_PROFESOR));
+
+        if (esProfesor) {
+            // Obtener institución actual del contexto (quien realiza la acción)
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof com.utp.libretago.config.security.AppUser) {
+                var appUser = (com.utp.libretago.config.security.AppUser) auth.getPrincipal();
+                Long institucionId = appUser.getInstitucionEducativaId();
+
+                if (institucionId != null) {
+                    return usuarioInstitucionRepository.deleteByUsuarioIdAndInstitucionId(id, institucionId);
+                }
+            }
+        }
+
         return usuarioRepository.inactivarUsuarioPorId(id);
     }
+
     /**
-         * Valida un archivo Excel que contiene usuarios, verificando formato y datos.
-         * Si existen errores, se genera un archivo con las observaciones.
-         * @param file Archivo Excel cargado.
-         * @return Resultado de la validación, incluyendo lista de usuarios válidos o archivo de errores.
-         * @throws IOException Si ocurre un error al leer el archivo.
+     * Valida un archivo Excel que contiene usuarios, verificando formato y datos. Si existen errores, se genera un archivo
+     * con las observaciones.
+     * 
+     * @param file Archivo Excel cargado.
+     * @return Resultado de la validación, incluyendo lista de usuarios válidos o archivo de errores.
+     * @throws IOException Si ocurre un error al leer el archivo.
      */
     @Override
     public ExcelValidadoDTO<UsuarioDTO> validarArchivo(MultipartFile file) throws IOException {
@@ -261,11 +318,12 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return new ExcelValidadoDTO<>(archivoErroresId, usuariosValidos);
     }
-    
+
     /**
-         * Extrae los datos de un usuario desde una fila del Excel.
-         * @param fila Fila del archivo Excel.
-         * @return Objeto {@link UsuarioDTO} con los datos extraídos.
+     * Extrae los datos de un usuario desde una fila del Excel.
+     * 
+     * @param fila Fila del archivo Excel.
+     * @return Objeto {@link UsuarioDTO} con los datos extraídos.
      */
     private UsuarioDTO extraerDatosUsuario(Row fila) {
         String dni = ExcelUtils.getValorCeldaComoTexto(fila, COL_DNI);
@@ -282,9 +340,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-         * Valida los campos de un usuario cargado desde Excel.
-         * @param usuario Usuario a validar.
-         * @return Mensaje de error si existe, o {@code null} si es válido.
+     * Valida los campos de un usuario cargado desde Excel.
+     * 
+     * @param usuario Usuario a validar.
+     * @return Mensaje de error si existe, o {@code null} si es válido.
      */
     private String validarUsuario(UsuarioDTO usuario) {
         String error = "";

@@ -59,8 +59,20 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
      * @param pageable parámetros de paginación y ordenamiento.
      * @return una página de notificaciones aprobadas y activas correspondientes a los grupos indicados.
      */
-    @Query("SELECT DISTINCT n " + "FROM Notificacion n " + "JOIN n.grupos g " + "WHERE g.id IN (?1) " + "AND n.activo = true " + "AND n.estado = '"
-            + Notificacion.ESTADO_APROBADO + "'")
+    @Query("SELECT DISTINCT n " +
+           "FROM Notificacion n " +
+           "JOIN NotificacionGrupo ng ON ng.notificacionId = n.id " +
+           "WHERE ng.grupoId IN (?1) " +
+           "AND n.activo = true " +
+           "AND n.estado = '" + Notificacion.ESTADO_APROBADO + "'")
     Page<Notificacion> findByGrupoIds(List<Long> grupoIds, Pageable pageable);
+
+    /**
+     * Recupera una página de notificaciones creadas por un usuario específico.
+     * @param usuarioCreadorId identificador del usuario creador.
+     * @param pageable parámetros de paginación y ordenamiento.
+     * @return una página de notificaciones creadas por el usuario.
+     */
+    Page<Notificacion> findByUsuarioCreadorIdAndActivoTrue(Long usuarioCreadorId, Pageable pageable);
 
 }

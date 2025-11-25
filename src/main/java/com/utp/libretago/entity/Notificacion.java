@@ -1,8 +1,7 @@
 package com.utp.libretago.entity;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import com.utp.libretago.classes.dto.IdLabelDTO;
 import com.utp.libretago.classes.dto.NotificacionDTO;
@@ -14,14 +13,13 @@ import lombok.Setter;
 /**
  * Entidad que representa una notificación dentro del sistema Libretago.
  * <p>
- * Las notificaciones son mensajes o avisos generados por un usuario creador
- * y dirigidos a uno o varios grupos. También pueden ser evaluadas por otro
- * usuario (evaluador).
+ * Las notificaciones son mensajes o avisos generados por un usuario creador y dirigidos a uno o varios grupos. También
+ * pueden ser evaluadas por otro usuario (evaluador).
  * </p>
  *
  * <p>
- * La entidad gestiona estados de aprobación, fechas de evaluación y métodos
- * auxiliares para convertir la información a objetos DTO.
+ * La entidad gestiona estados de aprobación, fechas de evaluación y métodos auxiliares para convertir la información a
+ * objetos DTO.
  * </p>
  *
  * @see Usuario
@@ -75,33 +73,18 @@ public class Notificacion {
      * Relación muchos a uno con {@link Usuario}. Es obligatorio.
      * </p>
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_creador_id", nullable = false)
     private Usuario usuarioCreador;
-
-    /**
-     * Grupos destinatarios de la notificación.
-     * <p>
-     * Relación muchos a muchos mediante la tabla intermedia
-     * <strong>notificacion_grupo</strong>.
-     * </p>
-     */
-    @ManyToMany
-    @JoinTable(
-        name = "notificacion_grupo",
-        joinColumns = @JoinColumn(name = "notificacion_id"),
-        inverseJoinColumns = @JoinColumn(name = "grupo_id")
-    )
-    private Set<Grupo> grupos = new HashSet<>();
 
     /**
      * Estado actual de la notificación.
      * <p>
      * Puede ser:
      * <ul>
-     *   <li><strong>P</strong> – Pendiente</li>
-     *   <li><strong>A</strong> – Aprobado</li>
-     *   <li><strong>R</strong> – Rechazado</li>
+     * <li><strong>P</strong> – Pendiente</li>
+     * <li><strong>A</strong> – Aprobado</li>
+     * <li><strong>R</strong> – Rechazado</li>
      * </ul>
      * Valor por defecto: <strong>P</strong>.
      * </p>
@@ -125,6 +108,9 @@ public class Notificacion {
     /** Fecha y hora de creación de la notificación. */
     @Column(name = "fecha_creacion", nullable = false)
     private LocalDateTime fechaCreacion = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "notificacion", fetch = FetchType.LAZY)
+    private List<NotificacionGrupo> notificacionGrupos;
 
     // -------------------------------------------------------------------------
     // Ciclo de vida
@@ -175,12 +161,13 @@ public class Notificacion {
     }
 
     /**
-     * Convierte la entidad {@link Notificacion} en un {@link NotificacionDTO}
-     * incluyendo también la lista de grupos asociados.
+     * Convierte la entidad {@link Notificacion} en un {@link NotificacionDTO} incluyendo también la lista de grupos
+     * asociados.
      *
+     * @param grupoIds lista de identificadores de grupos asociados.
      * @return un {@link NotificacionDTO} con información completa (notificación + grupos).
      */
-    public NotificacionDTO obtenerNotificacionConGruposDTO() {
+    public NotificacionDTO obtenerNotificacionConGruposDTO(List<Grupo> grupos) {
         NotificacionDTO notificacionDTO = obtenerNotificacionDTO();
 
         if (grupos != null && !grupos.isEmpty()) {

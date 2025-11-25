@@ -3,32 +3,32 @@ import { useGridDataProvider } from '@vaadin/hilla-react-crud'
 import { useForm } from '@vaadin/hilla-react-form'
 import { Button, Dialog, Grid, GridColumn, Icon, TextField } from '@vaadin/react-components'
 import { useConfirm } from 'Frontend/components/common/ConfirmDialog'
-import { NotificacionForm } from 'Frontend/components/forms/NotificacionForm'
+import { EventoForm } from 'Frontend/components/forms/EventoForm'
 import { ViewToolbar } from 'Frontend/components/ViewToolbar'
-import NotificacionDTO from 'Frontend/generated/com/utp/libretago/classes/dto/NotificacionDTO'
-import FiltroNotificacion from 'Frontend/generated/com/utp/libretago/classes/filtros/FiltroNotificacion'
-import FiltroNotificacionModel from 'Frontend/generated/com/utp/libretago/classes/filtros/FiltroNotificacionModel'
-import { AdministrarNotificacionEndpoint } from 'Frontend/generated/endpoints'
+import EventoDTO from 'Frontend/generated/com/utp/libretago/classes/dto/EventoDTO'
+import FiltroEvento from 'Frontend/generated/com/utp/libretago/classes/filtros/FiltroEvento'
+import FiltroEventoModel from 'Frontend/generated/com/utp/libretago/classes/filtros/FiltroEventoModel'
+import { AdministrarEventoEndpoint } from 'Frontend/generated/endpoints'
 import { useAuth } from 'Frontend/security/auth'
 import { useRef, useState } from 'react'
 import { MdDelete, MdEdit } from 'react-icons/md'
 
 export const config: ViewConfig = {
-  title: 'Notificaciones',
+  title: 'Administrar Eventos',
   menu: {
-    title: 'Notificaciones',
+    title: 'Eventos',
   },
   rolesAllowed: ['COLEGIO']
 }
 
 type FiltrosProps = {
-  onBuscar: (filtros: FiltroNotificacion) => void
+  onBuscar: (filtros: FiltroEvento) => void
   onNuevo: () => void
 }
 
-export function FiltroNotificacionForm(props: FiltrosProps) {
+export function FiltroEventoForm(props: FiltrosProps) {
 
-  const { model, field, submit } = useForm(FiltroNotificacionModel, {
+  const { model, field, submit } = useForm(FiltroEventoModel, {
     onSubmit: async (e) => props.onBuscar(e)
   })
 
@@ -36,7 +36,7 @@ export function FiltroNotificacionForm(props: FiltrosProps) {
     <div className='flex flex-wrap gap-1'>
       <TextField
         className='flex-1'
-        aria-label="Título de la notificación"
+        aria-label="Título del evento"
         label="Título"
         maxlength={255}
         {...field(model.titulo)}
@@ -56,7 +56,7 @@ export function FiltroNotificacionForm(props: FiltrosProps) {
   </>
 }
 
-export default function AdministrarNotificacionesView() {
+export default function AdministrarEventosView() {
   const confirmDialog = useConfirm()
   const [dialogOpened, setDialogOpened] = useState(false)
   const [editId, setEditId] = useState<undefined | number>(undefined)
@@ -65,11 +65,11 @@ export default function AdministrarNotificacionesView() {
   const isColegio = hasAccess({ rolesAllowed: ['COLEGIO'] })
   const isProfesor = hasAccess({ rolesAllowed: ['PROFESOR'] })
 
-  const filtros = useRef<FiltroNotificacion>({})
+  const filtros = useRef<FiltroEvento>({})
 
-  const dataProvider = useGridDataProvider(async (page) => AdministrarNotificacionEndpoint.buscarNotificacionesPorFiltros(filtros.current, page), [])
+  const dataProvider = useGridDataProvider(async (page) => AdministrarEventoEndpoint.buscarEventosPorFiltros(filtros.current, page), [])
 
-  function accionesTabla(data: { item: NotificacionDTO }) {
+  function accionesTabla(data: { item: EventoDTO }) {
     const isPendiente = data.item.estado === 'P'
 
     // PROFESOR no puede editar si está aprobado
@@ -96,29 +96,29 @@ export default function AdministrarNotificacionesView() {
     </div>
   }
 
-  function onCerrarDialog(notificacionId?: number) {
+  function onCerrarDialog(eventoId?: number) {
     setDialogOpened(false)
     setEditId(undefined)
-    if (notificacionId) dataProvider.refresh()
+    if (eventoId) dataProvider.refresh()
   }
 
-  async function onInactivarDialog(notificacionId: number) {
+  async function onInactivarDialog(eventoId: number) {
     const confirmar = await confirmDialog({
-      header: 'Desactivar', text: '¿Desea desactivar la notificación?',
+      header: 'Desactivar', text: '¿Desea desactivar el evento?',
       cancelable: true, confirmTheme: 'error'
     })
     if (!confirmar) return
 
-    const resp = await AdministrarNotificacionEndpoint.inactivarById(notificacionId)
+    const resp = await AdministrarEventoEndpoint.inactivarById(eventoId)
     if (resp > 0) dataProvider.refresh()
   }
 
   return (
     <main className="w-full h-full flex flex-col box-border gap-s p-m">
 
-      <ViewToolbar title="Administrar notificaciones" />
+      <ViewToolbar title="Administrar eventos" />
 
-      <FiltroNotificacionForm
+      <FiltroEventoForm
         onBuscar={(val) => {
           filtros.current = val
           dataProvider.refresh()
@@ -128,6 +128,12 @@ export default function AdministrarNotificacionesView() {
 
       <Grid dataProvider={dataProvider}>
         <GridColumn path="titulo" header='Título' autoWidth />
+        <GridColumn
+          path="fechaEvento"
+          header='Fecha Evento'
+          autoWidth
+          renderer={({ item }) => <>{item.fechaEvento?.substring(0, 16).replace('T', ' ')}</>}
+        />
 
         {isColegio && <GridColumn path="usuarioCreadorNombre" header='Creado por' />}
 
@@ -150,12 +156,12 @@ export default function AdministrarNotificacionesView() {
       <Dialog
         opened={dialogOpened}
         noCloseOnOutsideClick
-        headerTitle='Registrar notificación'
+        headerTitle='Registrar evento'
         overlayClass='responsive-dialog'
         onClosed={() => setDialogOpened(false)}>
 
-        <NotificacionForm
-          notificacionId={editId}
+        <EventoForm
+          eventoId={editId}
           onCerrar={onCerrarDialog}
         />
       </Dialog>

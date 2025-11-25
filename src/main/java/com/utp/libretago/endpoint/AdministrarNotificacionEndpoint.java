@@ -3,6 +3,7 @@ package com.utp.libretago.endpoint;
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.NotificacionDTO;
 import com.utp.libretago.classes.filtros.FiltroNotificacion;
+import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.service.NotificacionService;
 import com.utp.libretago.utils.Reutilizables;
 import com.vaadin.hilla.Endpoint;
@@ -12,6 +13,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -55,6 +57,10 @@ public class AdministrarNotificacionEndpoint {
     public Page<@NonNull NotificacionDTO> buscarNotificacionesPorFiltros(FiltroNotificacion filtro, Pageable pageable) {
         // Aplica orden descendente por defecto según el campo "id"
         pageable = Reutilizables.ordernarPorDefectoDesc(pageable, "id");
+
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        filtro.setInstitucionEducativaId(appUser.getInstitucionEducativaId());
+
         // Llama al servicio para realizar la búsqueda con filtros
         return notificacionService.buscarNotificacionesPorFiltros(filtro, pageable);
     }

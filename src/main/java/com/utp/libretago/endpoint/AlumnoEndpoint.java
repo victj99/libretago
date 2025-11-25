@@ -59,6 +59,10 @@ public class AlumnoEndpoint {
     @NonNull
     public Page<@NonNull AlumnoDTO> buscarPorFiltros(FiltroAlumno filtro, Pageable pageable) {
         pageable = Reutilizables.ordernarPorDefectoDesc(pageable, "id");
+
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        filtro.setInstitucionEducativaId(appUser.getInstitucionEducativaId());
+
         return alumnoService.buscarAlumnosPorFiltros(filtro, pageable);
     }
 

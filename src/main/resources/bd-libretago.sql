@@ -109,7 +109,7 @@ CREATE TABLE evento (
     id BIGSERIAL PRIMARY KEY,
     titulo VARCHAR(255) NOT NULL,
     detalle TEXT NOT NULL,
-    fecha_evento DATE NOT NULL,
+    fecha_evento TIMESTAMP NOT NULL,
     usuario_creador_id BIGINT NOT NULL,
     estado CHAR(1) NOT NULL DEFAULT 'P', -- ESTADO -> P: PENDIENTE, A: APROBADO, R: RECHAZADO
     usuario_evaluador_id BIGINT,
