@@ -11,7 +11,7 @@ import FiltroUsuario from 'Frontend/generated/com/utp/libretago/classes/filtros/
 import FiltroUsuarioModel from 'Frontend/generated/com/utp/libretago/classes/filtros/FiltroUsuarioModel'
 import { UsuarioProfesorEndpoint } from 'Frontend/generated/endpoints'
 import { useRef } from 'react'
-import { MdDelete, MdEdit } from 'react-icons/md'
+import { MdDelete, MdEdit, MdFileDownload } from 'react-icons/md'
 import { NavLink } from 'react-router'
 
 export const config: ViewConfig = {
@@ -25,6 +25,7 @@ export const config: ViewConfig = {
 type FiltrosProps = {
   onBuscar: (filtros: FiltroUsuario) => void
   onNuevo: () => void
+  onExportar: () => void
 }
 
 export function FiltroUsuarioForm(props: FiltrosProps) {
@@ -64,6 +65,11 @@ export function FiltroUsuarioForm(props: FiltrosProps) {
       <NavLink to='./registro-masivo'>
         <Button>Registro masivo</Button>
       </NavLink>
+
+      <Button onClick={props.onExportar} theme="secondary">
+        <MdFileDownload className="mr-2" />
+        Exportar Excel
+      </Button>
     </div>
   </>
 }
@@ -116,6 +122,13 @@ export default function UsuarioProfesorView() {
     if (resp > 0) dataProvider.refresh()
   }
 
+  function exportarExcel() {
+    const params = new URLSearchParams()
+    if (filtros.current.nombreCompleto) params.append('nombre', filtros.current.nombreCompleto)
+
+    window.open(`/descargar/usuarios/reporte?${params.toString()}`, '_blank')
+  }
+
   return (
     <main className="w-full h-full flex flex-col box-border gap-s p-m">
 
@@ -127,6 +140,7 @@ export default function UsuarioProfesorView() {
           dataProvider.refresh()
         }}
         onNuevo={() => setDialogOpened(true)}
+        onExportar={exportarExcel}
       />
 
       <Grid dataProvider={dataProvider}>

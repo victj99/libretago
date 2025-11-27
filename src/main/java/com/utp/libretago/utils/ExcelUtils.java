@@ -12,20 +12,20 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 /**
- * Clase utilitaria para operaciones relacionadas con archivos Excel.
- * Proporciona métodos para leer valores de celdas, validar datos y generar archivos de errores.
-  * @author Roberto Anton
+ * Clase utilitaria para operaciones relacionadas con archivos Excel. Proporciona métodos para leer valores de celdas,
+ * validar datos y generar archivos de errores.
+ * 
+ * @author Roberto Anton
  * @version 1.0
  * @since 2025-10
  */
 public class ExcelUtils {
-    
 
     /**
      * Obtiene el valor de una celda como texto a partir de una fila y la posición de la celda.
      * 
      * @param fila la fila de la hoja de Excel
-     * @param pos el índice de la celda en la fila
+     * @param pos  el índice de la celda en la fila
      * @return el valor de la celda como String o null si no hay valor
      */
     public static String getValorCeldaComoTexto(Row fila, int pos) {
@@ -33,37 +33,39 @@ public class ExcelUtils {
         return getValorCeldaComoTexto(fila.getCell(pos));
     }
 
-     /**
-     * Obtiene el valor de una celda como texto. 
+    /**
+     * Obtiene el valor de una celda como texto.
+     * 
      * @param celda la celda a leer
      * @return el valor de la celda como String, o null si es nula o tipo no soportado
-     */   
+     */
     public static String getValorCeldaComoTexto(Cell celda) {
-        if (celda == null) return null;
+        if (celda == null)
+            return null;
         switch (celda.getCellType()) {
-            case STRING:
-                return celda.getStringCellValue();
-            case NUMERIC:
-                // Convierte el valor numérico a long para evitar decimales innecesarios
-                return String.valueOf((long) celda.getNumericCellValue());
-            default:
-                return null;
+        case STRING:
+            return celda.getStringCellValue();
+        case NUMERIC:
+            // Convierte el valor numérico a long para evitar decimales innecesarios
+            return String.valueOf((long) celda.getNumericCellValue());
+        default:
+            return null;
         }
     }
-    
-     /**
-         * Genera un archivo Excel que incluye los errores detectados durante la validación de datos.
-         * 
-         * @param libro el workbook con los datos originales
-         * @param errores mapa con fila -> mensaje de error
-         * @param columnaError índice de la columna donde se escribirán los errores
-         * @return un identificador único del archivo generado
-         * @throws IOException si ocurre un error al escribir el archivo
-         */
+
+    /**
+     * Genera un archivo Excel que incluye los errores detectados durante la validación de datos.
+     * 
+     * @param libro        el workbook con los datos originales
+     * @param errores      mapa con fila -> mensaje de error
+     * @param columnaError índice de la columna donde se escribirán los errores
+     * @return un identificador único del archivo generado
+     * @throws IOException si ocurre un error al escribir el archivo
+     */
     public static String generarArchivoErrores(Workbook libro, Map<Integer, String> errores, int columnaError) throws IOException {
         // Obtenemos la primera hoja
         Sheet hoja = libro.getSheetAt(0);
-        
+
         // Agregar columna de errores si no existe
         Row filaEncabezado = hoja.getRow(0);
         if (filaEncabezado.getLastCellNum() <= columnaError) {
@@ -92,7 +94,7 @@ public class ExcelUtils {
         // Guardar el archivo con errores
         String idArchivo = String.valueOf(System.currentTimeMillis());
         String rutaArchivo = RutasConstantes.RUTA_EXCELS_ERROR + "excel-errors-" + idArchivo + ".xlsx";
-        
+
         try (FileOutputStream salida = new FileOutputStream(rutaArchivo)) {
             // Escribimos el workbook en disco
             libro.write(salida);
@@ -100,16 +102,16 @@ public class ExcelUtils {
 
         return idArchivo;
     }
-    
-         /**
-             * Valida la longitud de un campo y si es obligatorio.
-             * 
-             * @param valor valor del campo
-             * @param nombreCampo nombre descriptivo del campo
-             * @param longitudMaxima máximo de caracteres permitidos
-             * @param requerido true si es obligatorio, false si es opcional
-             * @return mensaje de error si falla validación o null si es válido
-         */
+
+    /**
+     * Valida la longitud de un campo y si es obligatorio.
+     * 
+     * @param valor          valor del campo
+     * @param nombreCampo    nombre descriptivo del campo
+     * @param longitudMaxima máximo de caracteres permitidos
+     * @param requerido      true si es obligatorio, false si es opcional
+     * @return mensaje de error si falla validación o null si es válido
+     */
     public static String validarLargoCampo(String valor, String nombreCampo, int longitudMaxima, boolean requerido) {
         if ((valor == null || valor.trim().isEmpty()) && requerido) {
             return nombreCampo + " es requerido. ";
@@ -139,5 +141,66 @@ public class ExcelUtils {
         }
         // Si pasa todas las validaciones, retorna null indicando que es válido
         return null;
+    }
+
+    /**
+     * Genera un archivo Excel con el reporte de usuarios.
+     * 
+     * @param usuarios lista de usuarios a exportar
+     * @return identificador del archivo generado
+     * @throws IOException si ocurre un error al escribir el archivo
+     */
+    public static String generarExcelUsuarios(java.util.List<com.utp.libretago.classes.dto.UsuarioInstitucionDTO> usuarios) throws IOException {
+        try (Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Usuarios");
+
+            // Crear encabezados
+            Row headerRow = sheet.createRow(0);
+            String[] headers = { "DNI", "Nombres", "Correo", "Teléfono", "Institución", "Estado" };
+
+            CellStyle headerStyle = workbook.createCellStyle();
+            org.apache.poi.ss.usermodel.Font font = workbook.createFont();
+            font.setBold(true);
+            headerStyle.setFont(font);
+
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Llenar datos
+            int rowNum = 1;
+            for (com.utp.libretago.classes.dto.UsuarioInstitucionDTO usuario : usuarios) {
+                Row row = sheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(usuario.getNombreUsuario() != null ? usuario.getNombreUsuario() : "");
+                row.createCell(1).setCellValue(usuario.getNombreCompleto() != null ? usuario.getNombreCompleto() : "");
+                row.createCell(2).setCellValue(usuario.getEmail() != null ? usuario.getEmail() : "");
+                row.createCell(3).setCellValue(usuario.getTelefono() != null ? usuario.getTelefono() : "");
+                row.createCell(4).setCellValue(usuario.getNombreInstitucion() != null ? usuario.getNombreInstitucion() : "");
+                row.createCell(5).setCellValue(Boolean.TRUE.equals(usuario.getActivo()) ? "Activo" : "Inactivo");
+            }
+
+            // Ajustar ancho de columnas
+            for (int i = 0; i < headers.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            // Crear directorio si no existe
+            File directorioErrores = new File(RutasConstantes.RUTA_EXCELS_ERROR); // Reutilizamos la ruta temporal
+            if (!directorioErrores.exists()) {
+                directorioErrores.mkdirs();
+            }
+
+            // Guardar el archivo
+            String idArchivo = String.valueOf(System.currentTimeMillis());
+            String rutaArchivo = RutasConstantes.RUTA_EXCELS_ERROR + "reporte-usuarios-" + idArchivo + ".xlsx";
+
+            try (FileOutputStream salida = new FileOutputStream(rutaArchivo)) {
+                workbook.write(salida);
+            }
+
+            return idArchivo;
+        }
     }
 }
