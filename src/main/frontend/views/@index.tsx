@@ -14,12 +14,18 @@ import ReactECharts from 'echarts-for-react';
 import { AlumnoEndpoint } from 'Frontend/generated/endpoints';
 import StudentStatsDTO from 'Frontend/generated/com/utp/libretago/classes/dto/StudentStatsDTO';
 
+import { useAuth } from 'Frontend/security/auth';
+
 export default function TaskListView() {
   const [stats, setStats] = useState<StudentStatsDTO | null>(null);
+  const { hasAccess } = useAuth();
+  const isColegio = hasAccess({ rolesAllowed: ['COLEGIO'] });
 
   useEffect(() => {
-    AlumnoEndpoint.obtenerEstadisticas().then(setStats).catch(console.error);
-  }, []);
+    if (isColegio) {
+      AlumnoEndpoint.obtenerEstadisticas().then(setStats).catch(console.error);
+    }
+  }, [isColegio]);
 
   const option = stats ? {
     title: {
@@ -62,14 +68,16 @@ export default function TaskListView() {
   return (
     <main className="w-full h-full flex flex-col box-border gap-s p-m">
       <ViewToolbar title="Inicio" />
-      <div className="flex-grow flex flex-col items-center justify-center gap-m">
-        {stats ? (
-          <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
-        ) : (
-          <div>Cargando estadísticas de alumnos...</div>
-        )}
-        <NotificationChart />
-      </div>
+      {isColegio && (
+        <div className="flex-grow flex flex-col items-center justify-center gap-m">
+          {stats ? (
+            <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
+          ) : (
+            <div>Cargando estadísticas de alumnos...</div>
+          )}
+          <NotificationChart />
+        </div>
+      )}
     </main>
   )
 }
