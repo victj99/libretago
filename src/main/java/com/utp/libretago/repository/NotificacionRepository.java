@@ -59,20 +59,38 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
      * @param pageable parámetros de paginación y ordenamiento.
      * @return una página de notificaciones aprobadas y activas correspondientes a los grupos indicados.
      */
-    @Query("SELECT DISTINCT n " +
-           "FROM Notificacion n " +
-           "JOIN NotificacionGrupo ng ON ng.notificacionId = n.id " +
-           "WHERE ng.grupoId IN (?1) " +
-           "AND n.activo = true " +
-           "AND n.estado = '" + Notificacion.ESTADO_APROBADO + "'")
+    @Query("SELECT DISTINCT n " + "FROM Notificacion n " + "JOIN NotificacionGrupo ng ON ng.notificacionId = n.id " + "WHERE ng.grupoId IN (?1) "
+            + "AND n.activo = true " + "AND n.estado = '" + Notificacion.ESTADO_APROBADO + "'")
     Page<Notificacion> findByGrupoIds(List<Long> grupoIds, Pageable pageable);
 
     /**
      * Recupera una página de notificaciones creadas por un usuario específico.
+     * 
      * @param usuarioCreadorId identificador del usuario creador.
-     * @param pageable parámetros de paginación y ordenamiento.
+     * @param pageable         parámetros de paginación y ordenamiento.
+     * @return una página de notificaciones creadas por el usuario.
+     */
+    /**
+     * Recupera una página de notificaciones creadas por un usuario específico.
+     * 
+     * @param usuarioCreadorId identificador del usuario creador.
+     * @param pageable         parámetros de paginación y ordenamiento.
      * @return una página de notificaciones creadas por el usuario.
      */
     Page<Notificacion> findByUsuarioCreadorIdAndActivoTrue(Long usuarioCreadorId, Pageable pageable);
 
+    /**
+     * Cuenta las notificaciones enviadas por día en un rango de fechas para una institución.
+     *
+     * @param institucionId identificador de la institución educativa.
+     * @param startDate     fecha de inicio del rango.
+     * @param endDate       fecha de fin del rango.
+     * @return lista de estadísticas con fecha y conteo.
+     */
+    @Query("SELECT new com.utp.libretago.classes.dto.NotificationStatsDTO(CAST(n.fechaCreacion AS LocalDate), COUNT(DISTINCT n.id)) "
+            + "FROM Notificacion n " + "JOIN n.notificacionGrupos ng " + "JOIN ng.grupo g " + "WHERE g.institucionEducativaId = :institucionId "
+            + "AND n.fechaCreacion BETWEEN :startDate AND :endDate " + "GROUP BY CAST(n.fechaCreacion AS LocalDate) "
+            + "ORDER BY CAST(n.fechaCreacion AS LocalDate) ASC")
+    List<com.utp.libretago.classes.dto.NotificationStatsDTO> countNotificacionesPorDia(@Param("institucionId") Long institucionId,
+            @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
 }

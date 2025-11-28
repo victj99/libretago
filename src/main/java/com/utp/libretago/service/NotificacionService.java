@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import com.utp.libretago.classes.dto.NotificacionDTO;
 import com.utp.libretago.classes.filtros.FiltroNotificacion;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface NotificacionService {
@@ -23,5 +24,20 @@ public interface NotificacionService {
     Page<NotificacionDTO> listarNotificacionesPorApoderadoId(Long apoderadoId, org.springframework.data.domain.Pageable pageable);
 
     // Listar notificaciones creadas por un usuario (Profesor)
+    /**
+     * Lista las notificaciones creadas por un usuario específico.
+     * 
+     * @param usuarioCreadorId ID del usuario creador.
+     * @param pageable         Configuración de paginación.
+     * @return Página de notificaciones en formato {@link NotificacionDTO}.
+     */
     Page<NotificacionDTO> listarNotificacionesPorUsuarioCreadorId(Long usuarioCreadorId, Pageable pageable);
+
+    /**
+     * Obtiene estadísticas de notificaciones enviadas por día en los últimos 2 meses.
+     *
+     * @param institucionId identificador de la institución educativa.
+     * @return lista de estadísticas.
+     */
+    List<com.utp.libretago.classes.dto.NotificationStatsDTO> obtenerEstadisticasNotificaciones(Long institucionId);
 }

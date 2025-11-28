@@ -62,13 +62,59 @@ export default function TaskListView() {
   return (
     <main className="w-full h-full flex flex-col box-border gap-s p-m">
       <ViewToolbar title="Inicio" />
-      <div className="flex-grow flex items-center justify-center">
+      <div className="flex-grow flex flex-col items-center justify-center gap-m">
         {stats ? (
           <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
         ) : (
-          <div>Cargando estadísticas...</div>
+          <div>Cargando estadísticas de alumnos...</div>
         )}
+        <NotificationChart />
       </div>
     </main>
   )
+}
+
+function NotificationChart() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    import('Frontend/generated/endpoints').then(({ AdministrarNotificacionEndpoint }) => {
+      AdministrarNotificacionEndpoint.obtenerEstadisticas().then(setData).catch(console.error);
+    });
+  }, []);
+
+  const option = {
+    title: {
+      text: 'Notificaciones Enviadas',
+      subtext: 'Últimos 2 meses',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'axis'
+    },
+    xAxis: {
+      type: 'category',
+      data: data.map(item => item.date)
+    },
+    yAxis: {
+      type: 'value'
+    },
+    series: [
+      {
+        data: data.map(item => item.count),
+        type: 'line',
+        smooth: true
+      }
+    ]
+  };
+
+  return (
+    <div className="w-full">
+      {data.length > 0 ? (
+        <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
+      ) : (
+        <div className="text-center">Cargando estadísticas de notificaciones...</div>
+      )}
+    </div>
+  );
 }

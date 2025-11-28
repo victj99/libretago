@@ -292,4 +292,14 @@ public class NotificacionServiceImpl implements NotificacionService {
                     new ArrayList<>(tokensSet));
         }
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<com.utp.libretago.classes.dto.NotificationStatsDTO> obtenerEstadisticasNotificaciones(Long institucionId) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(2);
+        return notificacionRepository.countNotificacionesPorDia(institucionId, startDate, endDate);
+    }
 }
