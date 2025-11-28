@@ -22,16 +22,16 @@ import com.utp.libretago.service.UsuarioService;
 import com.utp.libretago.utils.ExcelUtils;
 
 /**
- * Implementación del servicio {@link AlumnoService} que gestiona las operaciones
- * de negocio relacionadas con los alumnos.
+ * Implementación del servicio {@link AlumnoService} que gestiona las operaciones de negocio relacionadas con los
+ * alumnos.
  * <p>
- * Incluye funcionalidades como filtrado, creación, actualización, inactivación
- * y validación de datos provenientes de archivos Excel.
+ * Incluye funcionalidades como filtrado, creación, actualización, inactivación y validación de datos provenientes de
+ * archivos Excel.
  * </p>
  *
  * <p>
- * Este servicio interactúa con {@link AlumnoRepository} para operaciones de
- * persistencia y con {@link UsuarioService} para la gestión de apoderados.
+ * Este servicio interactúa con {@link AlumnoRepository} para operaciones de persistencia y con {@link UsuarioService}
+ * para la gestión de apoderados.
  * </p>
  *
  * @author Jhon
@@ -160,7 +160,8 @@ public class AlumnoServiceImpl implements AlumnoService {
             // Recorre todas las filas del Excel (omitimos la cabecera)
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
                 Row fila = sheet.getRow(i);
-                if (fila == null) continue;
+                if (fila == null)
+                    continue;
 
                 AlumnoDTO alumno = extraerDatosAlumno(fila);
 
@@ -183,6 +184,16 @@ public class AlumnoServiceImpl implements AlumnoService {
         return new ExcelValidadoDTO<>(archivoErroresId, alumnosValidos);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public StudentStatsDTO obtenerEstadisticas(Long institucionEducativaId) {
+        long activeCount = alumnoRepository.countByInstitucionEducativaIdAndActivo(institucionEducativaId, true);
+        long inactiveCount = alumnoRepository.countByInstitucionEducativaIdAndActivo(institucionEducativaId, false);
+        return new StudentStatsDTO(activeCount, inactiveCount);
+    }
+
     // -------------------------------------------------------------------------
     // MÉTODOS PRIVADOS (UTILITARIOS INTERNOS)
     // -------------------------------------------------------------------------
@@ -197,13 +208,16 @@ public class AlumnoServiceImpl implements AlumnoService {
         String error = "";
 
         String errNombres = ExcelUtils.validarLargoCampo(alumno.nombres(), "Nombres", 255, true);
-        if (errNombres != null) error += errNombres;
+        if (errNombres != null)
+            error += errNombres;
 
         String errApellidos = ExcelUtils.validarLargoCampo(alumno.apellidos(), "Apellidos", 255, true);
-        if (errApellidos != null) error += errApellidos;
+        if (errApellidos != null)
+            error += errApellidos;
 
         String errCodigo = ExcelUtils.validarLargoCampo(alumno.codigoAlumno(), "Código de alumno", 5, true);
-        if (errCodigo != null) error += errCodigo;
+        if (errCodigo != null)
+            error += errCodigo;
 
         // Si el alumno ya existe, no se validan datos del apoderado
         if (alumno.id() != null) {
@@ -211,16 +225,20 @@ public class AlumnoServiceImpl implements AlumnoService {
         }
 
         String errTelefono = ExcelUtils.validarLargoCampo(alumno.telefono(), "Teléfono", 20, false);
-        if (errTelefono != null) error += errTelefono;
+        if (errTelefono != null)
+            error += errTelefono;
 
         String errCorreo = ExcelUtils.validarCorreo(alumno.email());
-        if (errCorreo != null) error += errCorreo;
+        if (errCorreo != null)
+            error += errCorreo;
 
         String errDni = ExcelUtils.validarLargoCampo(alumno.dniCeApoderado(), "DNI/CE del apoderado", 9, true);
-        if (errDni != null) error += errDni;
+        if (errDni != null)
+            error += errDni;
 
         String errNombreApoderado = ExcelUtils.validarLargoCampo(alumno.nombreCompletoApoderado(), "Nombre del apoderado", 255, true);
-        if (errNombreApoderado != null) error += errNombreApoderado;
+        if (errNombreApoderado != null)
+            error += errNombreApoderado;
 
         return error.isEmpty() ? null : error;
     }
@@ -235,16 +253,10 @@ public class AlumnoServiceImpl implements AlumnoService {
         String codigoAlumno = ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_CODIGO_ALUMNO));
         var idExistente = alumnoRepository.findIdByCodigoAlumno(codigoAlumno);
 
-        return new AlumnoDTO(
-                idExistente != null ? idExistente : null,
-                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_NOMBRES)),
-                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_APELLIDOS)),
-                codigoAlumno,
-                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_TELEFONO)),
-                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_CORREO)),
+        return new AlumnoDTO(idExistente != null ? idExistente : null, ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_NOMBRES)),
+                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_APELLIDOS)), codigoAlumno,
+                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_TELEFONO)), ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_CORREO)),
                 ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_DNI_APODERADO)),
-                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_NOMBRE_APODERADO)),
-                true
-        );
+                ExcelUtils.getValorCeldaComoTexto(fila.getCell(COL_NOMBRE_APODERADO)), true);
     }
 }

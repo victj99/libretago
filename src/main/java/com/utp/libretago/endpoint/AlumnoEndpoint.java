@@ -13,6 +13,7 @@ import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.Alumno2DTO;
 import com.utp.libretago.classes.dto.AlumnoDTO;
 import com.utp.libretago.classes.dto.ExcelValidadoDTO;
+import com.utp.libretago.classes.dto.StudentStatsDTO;
 import com.utp.libretago.classes.filtros.FiltroAlumno;
 import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.service.AlumnoService;
@@ -137,5 +138,15 @@ public class AlumnoEndpoint {
      */
     public ExcelValidadoDTO<@NonNull AlumnoDTO> validarArchivo(@NonNull MultipartFile file) throws Exception {
         return alumnoService.validarArchivo(file);
+    }
+
+    /**
+     * Obtiene estadísticas de alumnos activos e inactivos para la institución del usuario actual.
+     *
+     * @return DTO con los conteos de alumnos activos e inactivos.
+     */
+    public @NonNull StudentStatsDTO obtenerEstadisticas() {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return alumnoService.obtenerEstadisticas(appUser.getInstitucionEducativaId());
     }
 }

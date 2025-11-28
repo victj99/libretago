@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.utp.libretago.classes.dto.Alumno2DTO;
 import com.utp.libretago.classes.dto.AlumnoDTO;
 import com.utp.libretago.classes.dto.ExcelValidadoDTO;
+import com.utp.libretago.classes.dto.StudentStatsDTO; // Added import for StudentStatsDTO
 import com.utp.libretago.classes.filtros.FiltroAlumno;
 
 /**
@@ -81,14 +82,19 @@ public interface AlumnoService {
     int inactivarById(Long id);
 
     /**
-     * Valida el contenido de un archivo Excel con información de alumnos.
-     * <p>
-     * Este método revisa formato, duplicados y consistencia de datos antes de importar.
-     * </p>
+     * Valida el contenido de un archivo Excel con datos de alumnos.
      *
      * @param file archivo Excel cargado por el usuario.
-     * @return un objeto {@link ExcelValidadoDTO} que contiene la lista de alumnos válidos y los errores detectados.
-     * @throws IOException si ocurre un error al leer el archivo.
+     * @return un objeto {@link ExcelValidadoDTO} con los resultados de la validación.
+     * @throws IOException si ocurre un error durante la lectura del archivo.
      */
     ExcelValidadoDTO<AlumnoDTO> validarArchivo(MultipartFile file) throws IOException;
+
+    /**
+     * Obtiene estadísticas de alumnos activos e inactivos por institución.
+     *
+     * @param institucionEducativaId identificador de la institución educativa.
+     * @return DTO con los conteos de alumnos activos e inactivos.
+     */
+    StudentStatsDTO obtenerEstadisticas(Long institucionEducativaId);
 }

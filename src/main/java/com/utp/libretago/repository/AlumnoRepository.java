@@ -16,13 +16,12 @@ import com.utp.libretago.entity.Alumno;
 /**
  * Repositorio JPA para la entidad {@link Alumno}.
  * <p>
- * Esta interfaz proporciona métodos personalizados de acceso y manipulación
- * de datos de los alumnos, además de las operaciones básicas CRUD heredadas
- * de {@link JpaRepository}.
+ * Esta interfaz proporciona métodos personalizados de acceso y manipulación de datos de los alumnos, además de las
+ * operaciones básicas CRUD heredadas de {@link JpaRepository}.
  * </p>
  * <p>
- * También implementa {@link JpaSpecificationExecutor} para permitir
- * búsquedas dinámicas mediante especificaciones (criterios).
+ * También implementa {@link JpaSpecificationExecutor} para permitir búsquedas dinámicas mediante especificaciones
+ * (criterios).
  * </p>
  *
  * @author Jhon
@@ -40,7 +39,7 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>, JpaSpecif
     @Modifying
     @Query("UPDATE Alumno i SET i.activo = false WHERE i.id = ?1")
     int inactivarAlumnoPorId(Long id);
-    
+
     /**
      * Busca un alumno por su código único.
      *
@@ -60,10 +59,9 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>, JpaSpecif
     Long findIdByCodigoAlumno(String codigo);
 
     /**
-     * Busca todos los alumnos activos cuyo código esté en una lista y pertenezcan
-     * a una institución educativa específica.
+     * Busca todos los alumnos activos cuyo código esté en una lista y pertenezcan a una institución educativa específica.
      *
-     * @param codigos lista de códigos de alumnos.
+     * @param codigos                lista de códigos de alumnos.
      * @param institucionEducativaId identificador de la institución educativa.
      * @return lista de alumnos que cumplen los criterios.
      */
@@ -80,14 +78,22 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>, JpaSpecif
     List<Long> findApoderadoIdsByAlumnoIds(List<Long> alumnoIds);
 
     /**
-     * Recupera una página de alumnos según una {@link Specification} dada, 
-     * utilizando un {@link EntityGraph} para incluir los datos del apoderado
-     * en una sola consulta (evita múltiples consultas N+1).
+     * Recupera una página de alumnos según una {@link Specification} dada, utilizando un {@link EntityGraph} para incluir
+     * los datos del apoderado en una sola consulta (evita múltiples consultas N+1).
      *
-     * @param spec objeto de especificación JPA que define los criterios de búsqueda.
+     * @param spec     objeto de especificación JPA que define los criterios de búsqueda.
      * @param pageable información de paginación (número de página, tamaño, orden, etc.).
      * @return una página de alumnos que cumplen la especificación.
      */
-    @EntityGraph(attributePaths = {"usuarioApoderado"})
+    @EntityGraph(attributePaths = { "usuarioApoderado" })
     Page<Alumno> findAll(Specification<Alumno> spec, Pageable pageable);
+
+    /**
+     * Cuenta el número de alumnos por institución y estado.
+     *
+     * @param institucionId identificador de la institución educativa.
+     * @param activo        estado de actividad del alumno.
+     * @return número de alumnos que cumplen los criterios.
+     */
+    long countByInstitucionEducativaIdAndActivo(Long institucionId, Boolean activo);
 }
