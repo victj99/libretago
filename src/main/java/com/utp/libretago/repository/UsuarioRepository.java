@@ -82,4 +82,18 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpec
      * @return lista de usuarios asociados al rol indicado.
      */
     List<Usuario> findByRolesId(Long rolId);
+
+    /**
+     * Cuenta usuarios por rol y estado activo.
+     * <p>
+     * Utiliza una consulta JPQL para contar usuarios que tengan un rol específico
+     * y un estado activo determinado.
+     * </p>
+     *
+     * @param rolId  identificador del rol.
+     * @param activo estado activo del usuario.
+     * @return cantidad de usuarios que cumplen con los criterios.
+     */
+    @Query("SELECT COUNT(u) FROM Usuario u JOIN u.roles r WHERE r.id = ?1 AND u.activo = ?2")
+    long countByRolIdAndActivo(Long rolId, Boolean activo);
 }

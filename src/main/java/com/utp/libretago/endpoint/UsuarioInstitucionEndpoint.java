@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.utp.libretago.classes.RolesEnum;
+import com.utp.libretago.classes.dto.ColegioStatsDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.classes.filtros.FiltroUsuario;
 import com.utp.libretago.entity.Rol;
@@ -113,5 +114,14 @@ public class UsuarioInstitucionEndpoint {
     public int inactivarUsuario(Long id) {
         // Llama al servicio para cambiar el estado del usuario a inactivo
         return usuarioService.inactivarById(id);
+    }
+
+    /**
+     * Obtiene las estadísticas de usuarios COLEGIO activos e inactivos en el sistema.
+     *
+     * @return Objeto {@link ColegioStatsDTO} con los conteos de colegios activos e inactivos.
+     */
+    public ColegioStatsDTO obtenerEstadisticas() {
+        return usuarioService.obtenerEstadisticasColegios();
     }
 }

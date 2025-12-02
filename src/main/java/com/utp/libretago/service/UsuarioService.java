@@ -139,4 +139,11 @@ public interface UsuarioService {
      * @return un {@link com.utp.libretago.classes.dto.ProfesorStatsDTO} con los conteos de profesores activos e inactivos.
      */
     com.utp.libretago.classes.dto.ProfesorStatsDTO obtenerEstadisticasProfesores(Long institucionEducativaId);
+
+    /**
+     * Obtiene estadísticas de usuarios COLEGIO activos e inactivos en el sistema.
+     * 
+     * @return un {@link com.utp.libretago.classes.dto.ColegioStatsDTO} con los conteos de colegios activos e inactivos.
+     */
+    com.utp.libretago.classes.dto.ColegioStatsDTO obtenerEstadisticasColegios();
 }

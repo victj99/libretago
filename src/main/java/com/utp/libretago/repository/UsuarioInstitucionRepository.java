@@ -69,8 +69,8 @@ public interface UsuarioInstitucionRepository
      * @return número de registros afectados.
      */
     @Modifying
-    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = false WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
-    int inactivarByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
+    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = false WHERE ui.usuarioColegio.id = ?1")
+    int inactivarByUsuarioIdAndInstitucionId(Long usuarioId);
 
     /**
      * Actualiza el estado activo de la relación entre un usuario y una institución educativa específica.
@@ -81,18 +81,8 @@ public interface UsuarioInstitucionRepository
      * @return número de registros afectados.
      */
     @Modifying
-    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = ?3 WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
-    int actualizarActivoByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId, Boolean activo);
-
-    /**
-     * Busca la relación {@link UsuarioInstitucion} correspondiente a un usuario e institución específica.
-     *
-     * @param usuarioId     identificador único del usuario.
-     * @param institucionId identificador único de la institución educativa.
-     * @return la relación encontrada o {@code null} si no existe.
-     */
-    @Query("SELECT ui FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
-    UsuarioInstitucion findByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
+    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = ?2 WHERE ui.usuarioColegio.id = ?1")
+    int actualizarActivoByUsuarioIdAndInstitucionId(Long usuarioId, Boolean activo);
 
     /**
      * Cuenta los profesores por institución educativa y estado activo.

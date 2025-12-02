@@ -7,17 +7,17 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.utp.libretago.classes.dto.ColegioStatsDTO;
 import com.utp.libretago.classes.dto.ExcelValidadoDTO;
 import com.utp.libretago.classes.dto.LabelValueDTO;
+import com.utp.libretago.classes.dto.ProfesorStatsDTO;
 import com.utp.libretago.classes.dto.UsuarioDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.classes.filtros.FiltroUsuario;
-import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.Rol;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.entity.UsuarioInstitucion;
@@ -261,15 +261,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
             // Actualizar el campo activo en usuario_institucion
             if (usuario.getActivo() != null) {
-                var auth = SecurityContextHolder.getContext().getAuthentication();
-                if (auth != null && auth.getPrincipal() instanceof AppUser) {
-                    var appUser = (AppUser) auth.getPrincipal();
-                    Long institucionId = appUser.getInstitucionEducativaId();
-
-                    if (institucionId != null) {
-                        usuarioInstitucionRepository.actualizarActivoByUsuarioIdAndInstitucionId(id, institucionId, usuario.getActivo());
-                    }
-                }
+                usuarioInstitucionRepository.actualizarActivoByUsuarioIdAndInstitucionId(id, usuario.getActivo());
             }
         } else {
             // Para otros roles, actualizar todo incluyendo activo en Usuario
@@ -281,8 +273,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-     * Inactiva un usuario según su ID. Si es profesor o colegio, inactiva la relación usuario-institución.
-     * Si no es profesor ni colegio, inactiva el usuario globalmente.
+     * Inactiva un usuario según su ID. Si es profesor o colegio, inactiva la relación usuario-institución. Si no es
+     * profesor ni colegio, inactiva el usuario globalmente.
      * 
      * @param id ID del usuario.
      * @return Número de registros afectados.
@@ -299,16 +291,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         boolean esColegio = usuario.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_COLEGIO));
 
         if (esProfesor || esColegio) {
+            if (esColegio)
+                usuarioRepository.inactivarUsuarioPorId(id);
             // Obtener institución actual del contexto (quien realiza la acción)
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getPrincipal() instanceof AppUser) {
-                var appUser = (AppUser) auth.getPrincipal();
-                Long institucionId = appUser.getInstitucionEducativaId();
-
-                if (institucionId != null) {
-                    return usuarioInstitucionRepository.inactivarByUsuarioIdAndInstitucionId(id, institucionId);
-                }
-            }
+            return usuarioInstitucionRepository.inactivarByUsuarioIdAndInstitucionId(id);
         }
 
         return usuarioRepository.inactivarUsuarioPorId(id);
@@ -413,9 +399,19 @@ public class UsuarioServiceImpl implements UsuarioService {
      * {@inheritDoc}
      */
     @Override
-    public com.utp.libretago.classes.dto.ProfesorStatsDTO obtenerEstadisticasProfesores(Long institucionEducativaId) {
+    public ProfesorStatsDTO obtenerEstadisticasProfesores(Long institucionEducativaId) {
         long activeCount = usuarioInstitucionRepository.countByInstitucionIdAndActivoAndRolProfesor(institucionEducativaId, true);
         long inactiveCount = usuarioInstitucionRepository.countByInstitucionIdAndActivoAndRolProfesor(institucionEducativaId, false);
-        return new com.utp.libretago.classes.dto.ProfesorStatsDTO(activeCount, inactiveCount);
+        return new ProfesorStatsDTO(activeCount, inactiveCount);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ColegioStatsDTO obtenerEstadisticasColegios() {
+        long activeCount = usuarioRepository.countByRolIdAndActivo(Rol.ID_COLEGIO, true);
+        long inactiveCount = usuarioRepository.countByRolIdAndActivo(Rol.ID_COLEGIO, false);
+        return new ColegioStatsDTO(activeCount, inactiveCount);
     }
 }

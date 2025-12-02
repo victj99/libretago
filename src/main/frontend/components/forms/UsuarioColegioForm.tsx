@@ -23,7 +23,7 @@ export function UsuarioColegioForm(props: Props) {
 
   const comboProvider = useComboBoxDataProvider((page, nombre) => InstitucionEducativaEndpoint.listarInstituciones(page, nombre))
 
-  const { model, field, submit, read } = useForm(UsuarioInstitucionDTOModel, {
+  const { model, field, submit, read, clear } = useForm(UsuarioInstitucionDTOModel, {
     onSubmit: async (e) => {
       const confirm = await confirmDialog({
         header: 'Registrar Usuario',
@@ -47,6 +47,7 @@ export function UsuarioColegioForm(props: Props) {
   })
 
   useEffect(() => {
+    clear()
     if (props.usuarioId) {
       setLoading(true)
       UsuarioInstitucionEndpoint.obtenerUsuario(props.usuarioId).then(resp => {
@@ -89,17 +90,17 @@ export function UsuarioColegioForm(props: Props) {
         {...field(model.telefono)}
       />
 
-      {!props.usuarioId && <ComboBox
-        className="md:col-span-2"
+      <ComboBox
+        className={`md:col-span-2 ${!props.usuarioId || 'hidden'}`}
         label='Institución educativa'
         dataProvider={comboProvider}
         {...field(model.institucionEducativaId)}
-      />}
+      />
 
-      {props.usuarioId && <strong
-        className="md:col-span-2"
-      >
-        {nombreIe}</strong>
+      {props.usuarioId && <div className="md:col-span-2">
+        Institución educativa:&nbsp;
+        <strong>{nombreIe}</strong>
+      </div>
       }
 
       {props.usuarioId && <Checkbox label='Activo' {...field(model.activo)} />}
