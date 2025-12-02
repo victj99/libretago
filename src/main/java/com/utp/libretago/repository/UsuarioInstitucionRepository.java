@@ -1,7 +1,10 @@
 package com.utp.libretago.repository;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import com.utp.libretago.entity.UsuarioInstitucion;
@@ -43,7 +46,7 @@ public interface UsuarioInstitucionRepository
      * @return una lista de relaciones encontradas.
      */
     @Query("SELECT ui FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
-    java.util.List<UsuarioInstitucion> findByUsuarioColegioId(Long usuarioId);
+    List<UsuarioInstitucion> findByUsuarioColegioId(Long usuarioId);
 
     /**
      * Recupera el identificador de la institución educativa asociada a un usuario del colegio.
@@ -52,16 +55,58 @@ public interface UsuarioInstitucionRepository
      * @return lista de identificadores de las instituciones educativas asociadas.
      */
     @Query("SELECT ui.institucionEducativaId FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1")
-    java.util.List<Long> findIdColegioByIdUsuario(Long usuarioId);
+    List<Long> findIdColegioByIdUsuario(Long usuarioId);
+
 
     /**
-     * Elimina la relación entre un usuario y una institución educativa específica.
+     * Inactiva la relación entre un usuario y una institución educativa específica.
+     * <p>
+     * Esta operación no elimina el registro de la base de datos, preservando así su historial.
+     * </p>
      * 
      * @param usuarioId     ID del usuario.
      * @param institucionId ID de la institución educativa.
-     * @return número de registros eliminados.
+     * @return número de registros afectados.
      */
-    @org.springframework.data.jpa.repository.Modifying
-    @Query("DELETE FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
-    int deleteByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
+    @Modifying
+    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = false WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
+    int inactivarByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
+
+    /**
+     * Actualiza el estado activo de la relación entre un usuario y una institución educativa específica.
+     * 
+     * @param usuarioId     ID del usuario.
+     * @param institucionId ID de la institución educativa.
+     * @param activo        nuevo estado activo.
+     * @return número de registros afectados.
+     */
+    @Modifying
+    @Query("UPDATE UsuarioInstitucion ui SET ui.activo = ?3 WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
+    int actualizarActivoByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId, Boolean activo);
+
+    /**
+     * Busca la relación {@link UsuarioInstitucion} correspondiente a un usuario e institución específica.
+     *
+     * @param usuarioId     identificador único del usuario.
+     * @param institucionId identificador único de la institución educativa.
+     * @return la relación encontrada o {@code null} si no existe.
+     */
+    @Query("SELECT ui FROM UsuarioInstitucion ui WHERE ui.usuarioColegio.id = ?1 AND ui.institucionEducativaId = ?2")
+    UsuarioInstitucion findByUsuarioIdAndInstitucionId(Long usuarioId, Long institucionId);
+
+    /**
+     * Cuenta los profesores por institución educativa y estado activo.
+     * <p>
+     * Solo cuenta usuarios que tengan el rol de profesor (ID = 3).
+     * </p>
+     *
+     * @param institucionId ID de la institución educativa.
+     * @param activo        estado activo a filtrar.
+     * @return cantidad de profesores que coinciden con los criterios.
+     */
+    @Query("SELECT COUNT(ui) FROM UsuarioInstitucion ui " +
+           "JOIN ui.usuarioColegio u " +
+           "JOIN u.roles r " +
+           "WHERE ui.institucionEducativaId = ?1 AND ui.activo = ?2 AND r.id = 3")
+    long countByInstitucionIdAndActivoAndRolProfesor(Long institucionId, Boolean activo);
 }

@@ -131,4 +131,12 @@ public interface UsuarioService {
      * @return el número de registros afectados (normalmente 1 si la operación fue exitosa).
      */
     int inactivarById(Long id);
+
+    /**
+     * Obtiene estadísticas de profesores activos e inactivos para una institución educativa.
+     * 
+     * @param institucionEducativaId el identificador de la institución educativa.
+     * @return un {@link com.utp.libretago.classes.dto.ProfesorStatsDTO} con los conteos de profesores activos e inactivos.
+     */
+    com.utp.libretago.classes.dto.ProfesorStatsDTO obtenerEstadisticasProfesores(Long institucionEducativaId);
 }

@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.ExcelValidadoDTO;
 import com.utp.libretago.classes.dto.LabelValueDTO;
+import com.utp.libretago.classes.dto.ProfesorStatsDTO;
 import com.utp.libretago.classes.dto.UsuarioDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.classes.filtros.FiltroUsuario;
@@ -168,5 +169,15 @@ public class UsuarioProfesorEndpoint {
     public ExcelValidadoDTO<@NonNull UsuarioDTO> validarArchivo(MultipartFile file) throws IOException {
         // Envía el archivo al servicio para validación de estructura y contenido
         return usuarioService.validarArchivo(file);
+    }
+
+    /**
+     * Obtiene estadísticas de profesores activos e inactivos para la institución del usuario actual.
+     *
+     * @return DTO con los conteos de profesores activos e inactivos.
+     */
+    public ProfesorStatsDTO obtenerEstadisticas() {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return usuarioService.obtenerEstadisticasProfesores(appUser.getInstitucionEducativaId());
     }
 }

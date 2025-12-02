@@ -7,6 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import com.utp.libretago.classes.dto.LabelValueDTO;
 import com.utp.libretago.classes.dto.UsuarioDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.classes.filtros.FiltroUsuario;
+import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.Rol;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.entity.UsuarioInstitucion;
@@ -100,7 +102,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     /**
-     * Obtiene un usuario-institución por su ID. Si tiene múltiples instituciones, devuelve la primera.
+     * Obtiene un usuario-institución por su ID.
+     * <p>
+     * Si el usuario es profesor, busca la relación específica con la institución del contexto de seguridad actual para
+     * obtener el estado activo correcto. Si tiene múltiples instituciones y no es profesor, devuelve la primera.
+     * </p>
      * 
      * @param id ID del usuario.
      * @return Optional con {@link UsuarioInstitucionDTO} si existe, vacío si no.
@@ -224,6 +230,10 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     /**
      * Actualiza los datos de un usuario existente.
+     * <p>
+     * Si el usuario es profesor, actualiza el campo activo solo en la relación usuario-institución basándose en la
+     * institución del contexto de seguridad, no en la entidad Usuario.
+     * </p>
      * 
      * @param id      ID del usuario a actualizar.
      * @param usuario Datos nuevos del usuario.
@@ -237,15 +247,42 @@ public class UsuarioServiceImpl implements UsuarioService {
             return null;
 
         Usuario e = existente.get();
-        BeanUtils.copyProperties(usuario, e, "id", "fechaCreacion", "contrasenia");
-        usuarioRepository.save(e);
+        boolean esProfesor = e.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_PROFESOR));
+        boolean esColegio = e.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_COLEGIO));
+
+        if (esProfesor || esColegio) {
+            // Si es profesor, no actualizar el campo activo en Usuario, solo en UsuarioInstitucion
+            BeanUtils.copyProperties(usuario, e, "id", "fechaCreacion", "contrasenia", "activo");
+
+            if (esColegio)
+                e.setActivo(usuario.getActivo());
+
+            usuarioRepository.save(e);
+
+            // Actualizar el campo activo en usuario_institucion
+            if (usuario.getActivo() != null) {
+                var auth = SecurityContextHolder.getContext().getAuthentication();
+                if (auth != null && auth.getPrincipal() instanceof AppUser) {
+                    var appUser = (AppUser) auth.getPrincipal();
+                    Long institucionId = appUser.getInstitucionEducativaId();
+
+                    if (institucionId != null) {
+                        usuarioInstitucionRepository.actualizarActivoByUsuarioIdAndInstitucionId(id, institucionId, usuario.getActivo());
+                    }
+                }
+            }
+        } else {
+            // Para otros roles, actualizar todo incluyendo activo en Usuario
+            BeanUtils.copyProperties(usuario, e, "id", "fechaCreacion", "contrasenia");
+            usuarioRepository.save(e);
+        }
 
         return usuario;
     }
 
     /**
-     * Inactiva un usuario según su ID. Si es profesor, solo elimina la relación con la institución actual. Si no es
-     * profesor, inactiva el usuario globalmente.
+     * Inactiva un usuario según su ID. Si es profesor o colegio, inactiva la relación usuario-institución.
+     * Si no es profesor ni colegio, inactiva el usuario globalmente.
      * 
      * @param id ID del usuario.
      * @return Número de registros afectados.
@@ -259,16 +296,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         var usuario = usuarioOpt.get();
         boolean esProfesor = usuario.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_PROFESOR));
+        boolean esColegio = usuario.getRoles().stream().anyMatch(r -> r.getId().equals(Rol.ID_COLEGIO));
 
-        if (esProfesor) {
+        if (esProfesor || esColegio) {
             // Obtener institución actual del contexto (quien realiza la acción)
-            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getPrincipal() instanceof com.utp.libretago.config.security.AppUser) {
-                var appUser = (com.utp.libretago.config.security.AppUser) auth.getPrincipal();
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() instanceof AppUser) {
+                var appUser = (AppUser) auth.getPrincipal();
                 Long institucionId = appUser.getInstitucionEducativaId();
 
                 if (institucionId != null) {
-                    return usuarioInstitucionRepository.deleteByUsuarioIdAndInstitucionId(id, institucionId);
+                    return usuarioInstitucionRepository.inactivarByUsuarioIdAndInstitucionId(id, institucionId);
                 }
             }
         }
@@ -369,5 +407,15 @@ public class UsuarioServiceImpl implements UsuarioService {
             error += errTelefono;
 
         return error.length() > 0 ? error : null;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public com.utp.libretago.classes.dto.ProfesorStatsDTO obtenerEstadisticasProfesores(Long institucionEducativaId) {
+        long activeCount = usuarioInstitucionRepository.countByInstitucionIdAndActivoAndRolProfesor(institucionEducativaId, true);
+        long inactiveCount = usuarioInstitucionRepository.countByInstitucionIdAndActivoAndRolProfesor(institucionEducativaId, false);
+        return new com.utp.libretago.classes.dto.ProfesorStatsDTO(activeCount, inactiveCount);
     }
 }

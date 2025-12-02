@@ -13,9 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import com.utp.libretago.classes.UserInfo;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.config.security.AppUser;
+import com.utp.libretago.entity.InstitucionEducativa;
 import com.utp.libretago.entity.TokenDispositivo;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.repository.InstitucionEducativaRepository;
+import com.utp.libretago.repository.UsuarioInstitucionRepository;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.exception.EndpointException;
 
@@ -37,7 +39,7 @@ public class LoggedUserService {
     @Autowired
     private InstitucionEducativaRepository institucionEducativaRepository;
     @Autowired
-    private com.utp.libretago.repository.UsuarioInstitucionRepository usuarioInstitucionRepository;
+    private UsuarioInstitucionRepository usuarioInstitucionRepository;
 
     /**
      * Obtiene información básica del usuario autenticado, incluyendo nombre y roles.
@@ -63,7 +65,7 @@ public class LoggedUserService {
             if (accesoValido) {
                 // Si es válido, obtener el nombre
                 nombreInstitucion = institucionEducativaRepository.findById(currentInstitucionId)
-                        .map(com.utp.libretago.entity.InstitucionEducativa::getNombre).orElse(null);
+                        .map(InstitucionEducativa::getNombre).orElse(null);
             } else {
                 // Si NO es válido (fue eliminado), buscar un nuevo contexto
                 Long nuevoId = idsInstituciones.isEmpty() ? null : idsInstituciones.get(0);
@@ -73,7 +75,7 @@ public class LoggedUserService {
 
                 // Si se encontró una nueva institución, obtener su nombre
                 if (nuevoId != null) {
-                    nombreInstitucion = institucionEducativaRepository.findById(nuevoId).map(com.utp.libretago.entity.InstitucionEducativa::getNombre)
+                    nombreInstitucion = institucionEducativaRepository.findById(nuevoId).map(InstitucionEducativa::getNombre)
                             .orElse(null);
                 }
             }

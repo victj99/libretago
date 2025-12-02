@@ -21,7 +21,7 @@ public interface NotificacionService {
     int inactivarById(Long id);
 
     // Listar notificaciones relacionadas a un apoderado (por los grupos de sus alumnos)
-    Page<NotificacionDTO> listarNotificacionesPorApoderadoId(Long apoderadoId, org.springframework.data.domain.Pageable pageable);
+    Page<NotificacionDTO> listarNotificacionesPorApoderadoId(Long apoderadoId, Pageable pageable);
 
     // Listar notificaciones creadas por un usuario (Profesor)
     /**

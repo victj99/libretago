@@ -46,6 +46,10 @@ public class UsuarioInstitucion {
     @Column(name = "institucion_educativa_id")
     private Long institucionEducativaId;
 
+    /** Indica si la relación usuario-institución está activa. Por defecto es {@code true}. */
+    @Column(nullable = false)
+    private Boolean activo = true;
+
     /**
      * Relación con el usuario colegio.
      * <p>
@@ -81,6 +85,20 @@ public class UsuarioInstitucion {
     public UsuarioInstitucion(Long usuarioColegioId, Long institucionEducativaId) {
         this.usuarioColegioId = usuarioColegioId;
         this.institucionEducativaId = institucionEducativaId;
+        this.activo = true;
+    }
+
+    /**
+     * Inicializa los valores por defecto antes de persistir la relación.
+     * <p>
+     * Se ejecuta automáticamente al insertar un nuevo registro.
+     * </p>
+     */
+    @PrePersist
+    private void prePersist() {
+        if (activo == null) {
+            activo = true;
+        }
     }
 
     /**
@@ -99,7 +117,7 @@ public class UsuarioInstitucion {
                 usuarioColegio.getNombreCompleto(),
                 usuarioColegio.getEmail(),
                 usuarioColegio.getTelefono(),
-                usuarioColegio.getActivo(),
+                activo,
                 institucionEducativa.getId(),
                 institucionEducativa.getNombre()
         );

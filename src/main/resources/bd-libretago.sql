@@ -45,6 +45,7 @@ CREATE TABLE institucion_educativa (
 CREATE TABLE usuario_institucion (
     usuario_colegio_id BIGINT NOT NULL,
     institucion_educativa_id BIGINT NOT NULL,
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT fk_usuario_institucion_usuario FOREIGN KEY (usuario_colegio_id) REFERENCES usuario (id) ON DELETE RESTRICT,
     CONSTRAINT fk_usuario_institucion_institucion FOREIGN KEY (institucion_educativa_id) REFERENCES institucion_educativa (id) ON DELETE CASCADE,
     PRIMARY KEY (usuario_colegio_id, institucion_educativa_id)

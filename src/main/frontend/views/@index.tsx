@@ -11,23 +11,28 @@ export const config: ViewConfig = {
 
 import { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { AlumnoEndpoint } from 'Frontend/generated/endpoints';
+import { AlumnoEndpoint, UsuarioProfesorEndpoint } from 'Frontend/generated/endpoints';
 import StudentStatsDTO from 'Frontend/generated/com/utp/libretago/classes/dto/StudentStatsDTO';
+import ProfesorStatsDTO from 'Frontend/generated/com/utp/libretago/classes/dto/ProfesorStatsDTO';
 
 import { useAuth } from 'Frontend/security/auth';
 
 export default function TaskListView() {
-  const [stats, setStats] = useState<StudentStatsDTO | null>(null);
+  const [studentStats, setStudentStats] = useState<StudentStatsDTO | null>(null);
+  const [profesorStats, setProfesorStats] = useState<ProfesorStatsDTO | null>(null);
   const { hasAccess } = useAuth();
   const isColegio = hasAccess({ rolesAllowed: ['COLEGIO'] });
 
   useEffect(() => {
     if (isColegio) {
-      AlumnoEndpoint.obtenerEstadisticas().then(setStats).catch(console.error);
+      AlumnoEndpoint.obtenerEstadisticas().then(setStudentStats).catch(console.error);
+      UsuarioProfesorEndpoint.obtenerEstadisticas().then(data => {
+        if (data) setProfesorStats(data);
+      }).catch(console.error);
     }
   }, [isColegio]);
 
-  const option = stats ? {
+  const studentOption = studentStats ? {
     title: {
       text: 'Estado de Alumnos',
       subtext: 'Activos vs Inactivos',
@@ -51,8 +56,46 @@ export default function TaskListView() {
           formatter: '{b}: {c} ({d}%)'
         },
         data: [
-          { value: stats.activeCount, name: 'Activos' },
-          { value: stats.inactiveCount, name: 'Inactivos' }
+          { value: studentStats.activeCount, name: 'Activos' },
+          { value: studentStats.inactiveCount, name: 'Inactivos' }
+        ],
+        emphasis: {
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
+          }
+        }
+      }
+    ]
+  } : {};
+
+  const profesorOption = profesorStats ? {
+    title: {
+      text: 'Estado de Profesores',
+      subtext: 'Activos vs Inactivos',
+      left: 'center'
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: '{a} <br/>{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      left: 'left'
+    },
+    series: [
+      {
+        name: 'Profesores',
+        type: 'pie',
+        radius: '50%',
+        label: {
+          show: true,
+          formatter: '{b}: {c} ({d}%)'
+        },
+        data: [
+          { value: profesorStats.activeCount, name: 'Activos' },
+          { value: profesorStats.inactiveCount, name: 'Inactivos' }
         ],
         emphasis: {
           itemStyle: {
@@ -70,11 +113,18 @@ export default function TaskListView() {
       <ViewToolbar title="Inicio" />
       {isColegio && (
         <div className="flex-grow flex flex-col items-center justify-center gap-m">
-          {stats ? (
-            <ReactECharts option={option} style={{ height: '400px', width: '100%' }} />
-          ) : (
-            <div>Cargando estadísticas de alumnos...</div>
-          )}
+          <div className="flex flex-row flex-wrap justify-center gap-m w-full">
+            {studentStats ? (
+              <ReactECharts option={studentOption} style={{ height: '400px', width: '45%', minWidth: '300px' }} />
+            ) : (
+              <div>Cargando estadísticas de alumnos...</div>
+            )}
+            {profesorStats ? (
+              <ReactECharts option={profesorOption} style={{ height: '400px', width: '45%', minWidth: '300px' }} />
+            ) : (
+              <div>Cargando estadísticas de profesores...</div>
+            )}
+          </div>
           <NotificationChart />
         </div>
       )}
