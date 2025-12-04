@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.UserInfo;
@@ -21,6 +22,7 @@ import com.utp.libretago.entity.TokenDispositivo;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.repository.InstitucionEducativaRepository;
 import com.utp.libretago.repository.UsuarioInstitucionRepository;
+import com.utp.libretago.repository.UsuarioRepository;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.exception.EndpointException;
 
@@ -43,6 +45,10 @@ public class LoggedUserService {
     private InstitucionEducativaRepository institucionEducativaRepository;
     @Autowired
     private UsuarioInstitucionRepository usuarioInstitucionRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     /**
      * Obtiene información básica del usuario autenticado, incluyendo nombre y roles.
@@ -67,8 +73,7 @@ public class LoggedUserService {
 
             if (accesoValido) {
                 // Si es válido, obtener el nombre
-                nombreInstitucion = institucionEducativaRepository.findById(currentInstitucionId)
-                        .map(InstitucionEducativa::getNombre).orElse(null);
+                nombreInstitucion = institucionEducativaRepository.findById(currentInstitucionId).map(InstitucionEducativa::getNombre).orElse(null);
             } else {
                 // Si NO es válido (fue eliminado), buscar un nuevo contexto
                 Long nuevoId = idsInstituciones.isEmpty() ? null : idsInstituciones.get(0);
@@ -78,8 +83,7 @@ public class LoggedUserService {
 
                 // Si se encontró una nueva institución, obtener su nombre
                 if (nuevoId != null) {
-                    nombreInstitucion = institucionEducativaRepository.findById(nuevoId).map(InstitucionEducativa::getNombre)
-                            .orElse(null);
+                    nombreInstitucion = institucionEducativaRepository.findById(nuevoId).map(InstitucionEducativa::getNombre).orElse(null);
                 }
             }
         } else {
@@ -170,8 +174,8 @@ public class LoggedUserService {
     /**
      * Cambia la institución educativa activa en la sesión del usuario autenticado.
      * <p>
-     * Verifica que el usuario tenga acceso a la institución solicitada antes de realizar el cambio.
-     * Si el cambio es exitoso, actualiza el contexto de seguridad de la sesión.
+     * Verifica que el usuario tenga acceso a la institución solicitada antes de realizar el cambio. Si el cambio es
+     * exitoso, actualiza el contexto de seguridad de la sesión.
      * </p>
      *
      * @param nuevaInstitucionId ID de la nueva institución a establecer como activa
@@ -195,8 +199,8 @@ public class LoggedUserService {
     /**
      * Actualiza el ID de la institución en el contexto de seguridad actual (sesión).
      * <p>
-     * Crea un nuevo objeto {@link AppUser} con el nuevo ID de institución y actualiza
-     * la autenticación en el {@link SecurityContextHolder}.
+     * Crea un nuevo objeto {@link AppUser} con el nuevo ID de institución y actualiza la autenticación en el
+     * {@link SecurityContextHolder}.
      * </p>
      *
      * @param institucionId nuevo ID de institución (puede ser {@code null})
@@ -217,11 +221,11 @@ public class LoggedUserService {
     private NotificacionService notificacionService;
 
     /**
-     * Obtiene estadísticas de notificaciones enviadas por día en los últimos 2 meses
-     * para todas las instituciones educativas.
+     * Obtiene estadísticas de notificaciones enviadas por día en los últimos 2 meses para todas las instituciones
+     * educativas.
      * <p>
-     * Este método está disponible únicamente para usuarios con rol ADMIN y es útil
-     * para visualizar un gráfico Line Race comparando la actividad de todos los colegios.
+     * Este método está disponible únicamente para usuarios con rol ADMIN y es útil para visualizar un gráfico Line Race
+     * comparando la actividad de todos los colegios.
      * </p>
      *
      * @return lista de {@link NotificationStatsMultiLineDTO} con las estadísticas por institución
@@ -236,11 +240,10 @@ public class LoggedUserService {
     private EventoService eventoService;
 
     /**
-     * Obtiene estadísticas de eventos enviados por día en los últimos 2 meses
-     * para todas las instituciones educativas.
+     * Obtiene estadísticas de eventos enviados por día en los últimos 2 meses para todas las instituciones educativas.
      * <p>
-     * Este método está disponible únicamente para usuarios con rol ADMIN y es útil
-     * para visualizar un gráfico Line Race comparando la actividad de eventos de todos los colegios.
+     * Este método está disponible únicamente para usuarios con rol ADMIN y es útil para visualizar un gráfico Line Race
+     * comparando la actividad de eventos de todos los colegios.
      * </p>
      *
      * @return lista de {@link EventoStatsMultiLineDTO} con las estadísticas por institución
@@ -249,5 +252,35 @@ public class LoggedUserService {
     @RolesAllowed(RolesEnum.ADMIN)
     public List<@NonNull EventoStatsMultiLineDTO> obtenerEstadisticasEventosTodasInstituciones() {
         return eventoService.obtenerEstadisticasEventosTodasInstituciones();
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     * <p>
+     * Valida que la contraseña actual sea correcta antes de actualizar a la nueva contraseña. La nueva contraseña debe
+     * tener al menos 6 caracteres.
+     * </p>
+     *
+     * @param contrasenaActual la contraseña actual del usuario
+     * @param contrasenaNueva  la nueva contraseña a establecer
+     * @throws EndpointException si la contraseña actual es incorrecta o la nueva no cumple requisitos
+     */
+    @PermitAll
+    public void cambiarContrasena(String contrasenaActual, String contrasenaNueva) {
+        if (contrasenaNueva == null || contrasenaNueva.length() < 6) {
+            throw new EndpointException("La nueva contraseña debe tener al menos 6 caracteres");
+        }
+
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Usuario usuario = usuarioRepository.findById(appUser.getId()).orElseThrow(() -> new EndpointException("Usuario no encontrado"));
+
+        // Verificar contraseña actual
+        if (!passwordEncoder.matches(contrasenaActual, usuario.getContrasenia())) {
+            throw new EndpointException("La contraseña actual es incorrecta");
+        }
+
+        // Actualizar a la nueva contraseña
+        usuario.setContrasenia(passwordEncoder.encode(contrasenaNueva));
+        usuarioRepository.save(usuario);
     }
 }
