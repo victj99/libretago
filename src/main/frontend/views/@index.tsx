@@ -7,6 +7,7 @@ import NotificationStatsChart from 'Frontend/components/charts/NotificationStats
 import ColegioStatsChart from 'Frontend/components/charts/ColegioStatsChart';
 import AdminNotificationStatsChart from 'Frontend/components/charts/AdminNotificationStatsChart';
 import AdminEventoStatsChart from 'Frontend/components/charts/AdminEventoStatsChart';
+import ProximosEventosApoderado from 'Frontend/components/ProximosEventosApoderado';
 
 export const config: ViewConfig = {
   title: 'Inicio',
@@ -19,6 +20,7 @@ export default function TaskListView() {
   const { hasAccess } = useAuth();
   const isColegio = hasAccess({ rolesAllowed: ['COLEGIO'] });
   const isAdmin = hasAccess({ rolesAllowed: ['ADMIN'] });
+  const isApoderado = hasAccess({ rolesAllowed: ['APODERADO'] });
 
   return (
     <main className="w-full h-full flex flex-col box-border gap-s p-m">
@@ -41,6 +43,12 @@ export default function TaskListView() {
           <AdminEventoStatsChart />
         </div>
       )}
+      {isApoderado && (
+        <div className="flex-grow flex flex-col items-center justify-center gap-m">
+          <ProximosEventosApoderado />
+        </div>
+      )}
     </main>
   )
 }
+
