@@ -6,6 +6,7 @@ import ProfesorStatsChart from 'Frontend/components/charts/ProfesorStatsChart';
 import NotificationStatsChart from 'Frontend/components/charts/NotificationStatsChart';
 import ColegioStatsChart from 'Frontend/components/charts/ColegioStatsChart';
 import AdminNotificationStatsChart from 'Frontend/components/charts/AdminNotificationStatsChart';
+import AdminEventoStatsChart from 'Frontend/components/charts/AdminEventoStatsChart';
 
 export const config: ViewConfig = {
   title: 'Inicio',
@@ -37,6 +38,7 @@ export default function TaskListView() {
             <ColegioStatsChart />
           </div>
           <AdminNotificationStatsChart />
+          <AdminEventoStatsChart />
         </div>
       )}
     </main>

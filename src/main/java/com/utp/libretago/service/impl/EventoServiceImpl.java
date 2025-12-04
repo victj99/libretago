@@ -18,14 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.EventoDTO;
+import com.utp.libretago.classes.dto.EventoStatsDTO;
+import com.utp.libretago.classes.dto.EventoStatsInstitucionDTO;
+import com.utp.libretago.classes.dto.EventoStatsMultiLineDTO;
 import com.utp.libretago.classes.filtros.FiltroEvento;
 import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.Grupo;
+import com.utp.libretago.entity.InstitucionEducativa;
 import com.utp.libretago.entity.Evento;
 import com.utp.libretago.entity.EventoGrupo;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.repository.AlumnoGrupoRepository;
 import com.utp.libretago.repository.GrupoRepository;
+import com.utp.libretago.repository.InstitucionEducativaRepository;
 import com.utp.libretago.repository.EventoGrupoRepository;
 import com.utp.libretago.repository.EventoRepository;
 import com.utp.libretago.service.FirebaseMessageService;
@@ -61,6 +66,9 @@ public class EventoServiceImpl implements EventoService {
 
     @Autowired
     private AlumnoGrupoRepository alumnoGrupoRepository;
+
+    @Autowired
+    private InstitucionEducativaRepository institucionEducativaRepository;
 
     @Override
     public Page<EventoDTO> buscarEventosPorFiltros(FiltroEvento filtro, Pageable pageable) {
@@ -207,5 +215,51 @@ public class EventoServiceImpl implements EventoService {
             fcmService.sendNotification(evento.getTitulo(), evento.getDetalle(), Map.of("eventoId", evento.getId().toString()),
                     new ArrayList<>(tokensSet));
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<EventoStatsDTO> obtenerEstadisticasEventos(Long institucionId) {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(2);
+        return eventoRepository.countEventosPorDia(institucionId, startDate, endDate);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<EventoStatsMultiLineDTO> obtenerEstadisticasEventosTodasInstituciones() {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(2);
+
+        // Obtener todas las instituciones activas
+        List<InstitucionEducativa> instituciones = institucionEducativaRepository.findAll()
+                .stream()
+                .filter(i -> Boolean.TRUE.equals(i.getActivo()))
+                .toList();
+
+        // Obtener todas las estadísticas en una sola consulta optimizada
+        List<EventoStatsInstitucionDTO> allStats = eventoRepository
+                .countEventosPorDiaTodasInstituciones(startDate, endDate);
+
+        // Agrupar estadísticas por institucionId
+        Map<Long, List<EventoStatsDTO>> statsPorInstitucion = allStats.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        EventoStatsInstitucionDTO::institucionId,
+                        java.util.stream.Collectors.mapping(
+                                stat -> new EventoStatsDTO(stat.date(), stat.count()),
+                                java.util.stream.Collectors.toList())));
+
+        // Construir la respuesta incluyendo instituciones sin eventos
+        List<EventoStatsMultiLineDTO> resultado = new ArrayList<>();
+        for (InstitucionEducativa inst : instituciones) {
+            List<EventoStatsDTO> stats = statsPorInstitucion.getOrDefault(inst.getId(), new ArrayList<>());
+            resultado.add(new EventoStatsMultiLineDTO(inst.getNombre(), inst.getId(), stats));
+        }
+
+        return resultado;
     }
 }

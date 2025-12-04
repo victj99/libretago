@@ -31,4 +31,20 @@ public interface EventoService {
     Page<EventoDTO> listarEventosPorApoderadoId(Long apoderadoId, Pageable pageable);
 
     Page<EventoDTO> listarEventosPorUsuarioCreadorId(Long usuarioCreadorId, Pageable pageable);
+
+    /**
+     * Obtiene estadísticas de eventos enviados por día en los últimos 2 meses.
+     *
+     * @param institucionId identificador de la institución educativa.
+     * @return lista de estadísticas.
+     */
+    java.util.List<com.utp.libretago.classes.dto.EventoStatsDTO> obtenerEstadisticasEventos(Long institucionId);
+
+    /**
+     * Obtiene estadísticas de eventos enviados por día en los últimos 2 meses
+     * para todas las instituciones educativas (vista de administrador).
+     *
+     * @return lista de estadísticas por institución.
+     */
+    java.util.List<com.utp.libretago.classes.dto.EventoStatsMultiLineDTO> obtenerEstadisticasEventosTodasInstituciones();
 }
