@@ -4,6 +4,7 @@ import UsuarioInstitucionDTO from 'Frontend/generated/com/utp/libretago/classes/
 import { LoggedUserService } from 'Frontend/generated/endpoints'
 import { useAuth } from 'Frontend/security/auth'
 import { useEffect, useState } from 'react'
+import { FaUser } from "react-icons/fa"
 
 export const config: ViewConfig = {
   menu: {
@@ -91,7 +92,7 @@ export default function PerfilView() {
     <div className="flex flex-col items-center p-m gap-m">
       <div className="bg-base p-l rounded-l shadow-s w-full max-w-md flex flex-col gap-m items-center">
         <div className="bg-primary-10 p-l rounded-full">
-          <Icon icon="vaadin:user" className="icon-xl text-primary" style={{ width: '64px', height: '64px' }} />
+          <FaUser className="icon-xl text-primary" style={{ width: '64px', height: '64px' }} />
         </div>
 
         <div className="text-center">
