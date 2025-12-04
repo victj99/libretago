@@ -25,9 +25,12 @@ import lombok.Getter;
 @Getter
 public class UserInfo {
 
-    /** El nombre del usuario. No puede ser {@code null}. */
+    /** El nombre de usuario (login). No puede ser {@code null}. */
     @Nonnull
     private String name;
+
+    /** El nombre completo del usuario (nombres y apellidos). */
+    private String nombreCompleto;
 
     /** Colección inmutable de autoridades/roles del usuario. No puede ser {@code null}. */
     @Nonnull
@@ -39,9 +42,10 @@ public class UserInfo {
      */
     private String nombreInstitucion;
 
-    public UserInfo(String name, Collection<String> authorities, String nombreInstitucion) {
+    public UserInfo(String name, String nombreCompleto, Collection<String> authorities, String nombreInstitucion) {
         // Asigna el nombre recibido al campo 'name'
         this.name = name;
+        this.nombreCompleto = nombreCompleto;
         // Convierte la lista de autoridades en una colección inmutable
         this.authorities = Collections.unmodifiableCollection(authorities);
         this.nombreInstitucion = nombreInstitucion;
