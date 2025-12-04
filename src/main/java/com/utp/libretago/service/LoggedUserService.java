@@ -65,6 +65,9 @@ public class LoggedUserService {
 
         final List<String> authorities = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 
+        // Obtener nombre completo del usuario
+        String nombreCompleto = usuarioRepository.findById(appUser.getId()).map(Usuario::getNombreCompleto).orElse(null);
+
         String nombreInstitucion = null;
         Long currentInstitucionId = appUser.getInstitucionEducativaId();
 
@@ -93,7 +96,7 @@ public class LoggedUserService {
             // Podríamos intentar asignarle uno aquí también, pero por ahora mantenemos la lógica de solo validar lo existente.
         }
 
-        return new UserInfo(auth.getName(), authorities, nombreInstitucion);
+        return new UserInfo(auth.getName(), nombreCompleto, authorities, nombreInstitucion);
     }
 
     /**

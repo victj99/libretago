@@ -113,7 +113,10 @@ export default function PerfilView() {
         </div>
 
         <div className="text-center">
-          <h2 className="text-xl font-bold">{state.user?.name}</h2>
+          <h2 className="text-xl font-bold">{(state.user as any)?.nombreCompleto || state.user?.name}</h2>
+          {(state.user as any)?.nombreCompleto && (
+            <p className="text-secondary text-s">{state.user?.name}</p>
+          )}
           <p className="text-secondary">
             {state.user?.authorities.map(role => role?.replace('ROLE_', '')).join(', ')}
           </p>
