@@ -103,7 +103,7 @@ public class Alumno {
             nombreApoderado = usuarioApoderado.getNombreCompleto();
         }
 
-        return new AlumnoDTO(id, nombres, apellidos, codigoAlumno, email, telefono, dni, nombreApoderado, activo);
+        return new AlumnoDTO(id, nombres, apellidos, codigoAlumno, telefono, email, dni, nombreApoderado, activo);
     }
 
     /**
