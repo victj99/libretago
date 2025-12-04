@@ -13,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.UserInfo;
+import com.utp.libretago.classes.dto.Alumno2DTO;
 import com.utp.libretago.classes.dto.EventoStatsMultiLineDTO;
 import com.utp.libretago.classes.dto.NotificationStatsMultiLineDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
@@ -20,6 +21,7 @@ import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.InstitucionEducativa;
 import com.utp.libretago.entity.TokenDispositivo;
 import com.utp.libretago.entity.Usuario;
+import com.utp.libretago.repository.AlumnoRepository;
 import com.utp.libretago.repository.InstitucionEducativaRepository;
 import com.utp.libretago.repository.UsuarioInstitucionRepository;
 import com.utp.libretago.repository.UsuarioRepository;
@@ -282,5 +284,24 @@ public class LoggedUserService {
         // Actualizar a la nueva contraseña
         usuario.setContrasenia(passwordEncoder.encode(contrasenaNueva));
         usuarioRepository.save(usuario);
+    }
+
+    @Autowired
+    private AlumnoRepository alumnoRepository;
+
+    /**
+     * Lista los alumnos asociados al apoderado autenticado.
+     * <p>
+     * Este método está disponible únicamente para usuarios con rol APODERADO.
+     * </p>
+     *
+     * @return lista de {@link Alumno2DTO} con los datos básicos de los alumnos
+     */
+    @NonNull
+    @RolesAllowed(RolesEnum.APODERADO)
+    public List<@NonNull Alumno2DTO> listarAlumnosApoderado() {
+        AppUser appUser = (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        var alumnos = alumnoRepository.findByUsuarioApoderadoIdAndActivoTrue(appUser.getId());
+        return alumnos.stream().map(a -> a.obtenerAlumno2DTO()).toList();
     }
 }

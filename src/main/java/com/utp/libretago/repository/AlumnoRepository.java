@@ -96,4 +96,12 @@ public interface AlumnoRepository extends JpaRepository<Alumno, Long>, JpaSpecif
      * @return número de alumnos que cumplen los criterios.
      */
     long countByInstitucionEducativaIdAndActivo(Long institucionId, Boolean activo);
+
+    /**
+     * Busca todos los alumnos activos asociados a un apoderado específico.
+     *
+     * @param usuarioApoderadoId identificador del usuario apoderado.
+     * @return lista de alumnos asociados al apoderado.
+     */
+    List<Alumno> findByUsuarioApoderadoIdAndActivoTrue(Long usuarioApoderadoId);
 }

@@ -1,5 +1,6 @@
 import { ViewConfig } from '@vaadin/hilla-file-router/types.js'
 import { Button, Icon, Notification, PasswordField, Select } from '@vaadin/react-components'
+import Alumno2DTO from 'Frontend/generated/com/utp/libretago/classes/dto/Alumno2DTO'
 import UsuarioInstitucionDTO from 'Frontend/generated/com/utp/libretago/classes/dto/UsuarioInstitucionDTO'
 import { LoggedUserService } from 'Frontend/generated/endpoints'
 import { useAuth } from 'Frontend/security/auth'
@@ -25,9 +26,16 @@ export default function PerfilView() {
   const [contrasenaConfirmar, setContrasenaConfirmar] = useState('')
   const [cambiandoContrasena, setCambiandoContrasena] = useState(false)
 
+  // Estado para alumnos del apoderado
+  const [alumnos, setAlumnos] = useState<Alumno2DTO[]>([])
+  const isApoderado = hasAccess({ rolesAllowed: ['APODERADO'] })
+
   useEffect(() => {
     if (hasAccess({ rolesAllowed: ['PROFESOR'] })) {
       cargarContexto()
+    }
+    if (isApoderado) {
+      cargarAlumnos()
     }
   }, [])
 
@@ -42,6 +50,15 @@ export default function PerfilView() {
       else if (lista.length > 0) setCurrentId(lista[0].institucionEducativaId?.toString() || '')
     } catch (e) {
       console.error("Error cargando contexto", e)
+    }
+  }
+
+  async function cargarAlumnos() {
+    try {
+      const lista = await LoggedUserService.listarAlumnosApoderado()
+      setAlumnos(lista)
+    } catch (e) {
+      console.error("Error cargando alumnos", e)
     }
   }
 
@@ -102,6 +119,31 @@ export default function PerfilView() {
           </p>
         </div>
 
+        {/* Sección de alumnos para apoderados */}
+        {isApoderado && alumnos.length > 0 && (
+          <div className="w-full pt-m border-t border-contrast-10">
+            <h3 className="text-m font-semibold mb-s">Mis Alumnos</h3>
+            <div className="flex flex-col gap-s">
+              {alumnos.map((alumno) => (
+                <div
+                  key={alumno.id}
+                  className="flex items-center gap-m p-s bg-contrast-5 rounded-m"
+                >
+                  <div className="bg-primary-10 p-s rounded-full">
+                    <Icon icon="vaadin:academy-cap" className="text-primary" style={{ width: '24px', height: '24px' }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{alumno.nombres} {alumno.apellidos}</p>
+                    {alumno.codigoAlumno && (
+                      <p className="text-secondary text-s">Código: {alumno.codigoAlumno}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {hasAccess({ rolesAllowed: ['PROFESOR'] }) && instituciones.length > 1 && (
           <div className="w-full pt-m border-t border-contrast-10">
             <h3 className="text-m font-semibold mb-s">Cambiar Colegio</h3>
@@ -156,4 +198,3 @@ export default function PerfilView() {
     </div>
   )
 }
-
