@@ -18,14 +18,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.dto.NotificacionDTO;
+import com.utp.libretago.classes.dto.NotificationStatsDTO;
+import com.utp.libretago.classes.dto.NotificationStatsInstitucionDTO;
+import com.utp.libretago.classes.dto.NotificationStatsMultiLineDTO;
 import com.utp.libretago.classes.filtros.FiltroNotificacion;
 import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.Grupo;
+import com.utp.libretago.entity.InstitucionEducativa;
 import com.utp.libretago.entity.Notificacion;
 import com.utp.libretago.entity.NotificacionGrupo;
 import com.utp.libretago.entity.Usuario;
 import com.utp.libretago.repository.AlumnoGrupoRepository;
 import com.utp.libretago.repository.GrupoRepository;
+import com.utp.libretago.repository.InstitucionEducativaRepository;
 import com.utp.libretago.repository.NotificacionGrupoRepository;
 import com.utp.libretago.repository.NotificacionRepository;
 import com.utp.libretago.service.FirebaseMessageService;
@@ -62,6 +67,9 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Autowired
     private AlumnoGrupoRepository alumnoGrupoRepository;
+
+    @Autowired
+    private InstitucionEducativaRepository institucionEducativaRepository;
 
     /**
      * Busca notificaciones aplicando filtros con paginación.
@@ -297,9 +305,45 @@ public class NotificacionServiceImpl implements NotificacionService {
      * {@inheritDoc}
      */
     @Override
-    public List<com.utp.libretago.classes.dto.NotificationStatsDTO> obtenerEstadisticasNotificaciones(Long institucionId) {
+    public List<NotificationStatsDTO> obtenerEstadisticasNotificaciones(Long institucionId) {
         LocalDateTime endDate = LocalDateTime.now();
         LocalDateTime startDate = endDate.minusMonths(2);
         return notificacionRepository.countNotificacionesPorDia(institucionId, startDate, endDate);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<NotificationStatsMultiLineDTO> obtenerEstadisticasNotificacionesTodasInstituciones() {
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusMonths(2);
+
+        // Obtener todas las instituciones activas
+        List<InstitucionEducativa> instituciones = institucionEducativaRepository.findAll()
+                .stream()
+                .filter(i -> Boolean.TRUE.equals(i.getActivo()))
+                .toList();
+
+        // Obtener todas las estadísticas en una sola consulta optimizada
+        List<NotificationStatsInstitucionDTO> allStats = notificacionRepository
+                .countNotificacionesPorDiaTodasInstituciones(startDate, endDate);
+
+        // Agrupar estadísticas por institucionId
+        Map<Long, List<NotificationStatsDTO>> statsPorInstitucion = allStats.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        NotificationStatsInstitucionDTO::institucionId,
+                        java.util.stream.Collectors.mapping(
+                                stat -> new NotificationStatsDTO(stat.date(), stat.count()),
+                                java.util.stream.Collectors.toList())));
+
+        // Construir la respuesta incluyendo instituciones sin notificaciones
+        List<NotificationStatsMultiLineDTO> resultado = new ArrayList<>();
+        for (InstitucionEducativa inst : instituciones) {
+            List<NotificationStatsDTO> stats = statsPorInstitucion.getOrDefault(inst.getId(), new ArrayList<>());
+            resultado.add(new NotificationStatsMultiLineDTO(inst.getNombre(), inst.getId(), stats));
+        }
+
+        return resultado;
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import com.utp.libretago.classes.RolesEnum;
 import com.utp.libretago.classes.UserInfo;
+import com.utp.libretago.classes.dto.NotificationStatsMultiLineDTO;
 import com.utp.libretago.classes.dto.UsuarioInstitucionDTO;
 import com.utp.libretago.config.security.AppUser;
 import com.utp.libretago.entity.InstitucionEducativa;
@@ -208,5 +210,24 @@ public class LoggedUserService {
         Authentication newAuth = new UsernamePasswordAuthenticationToken(nuevoAppUser, auth.getCredentials(), auth.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(newAuth);
+    }
+
+    @Autowired
+    private NotificacionService notificacionService;
+
+    /**
+     * Obtiene estadísticas de notificaciones enviadas por día en los últimos 2 meses
+     * para todas las instituciones educativas.
+     * <p>
+     * Este método está disponible únicamente para usuarios con rol ADMIN y es útil
+     * para visualizar un gráfico Line Race comparando la actividad de todos los colegios.
+     * </p>
+     *
+     * @return lista de {@link NotificationStatsMultiLineDTO} con las estadísticas por institución
+     */
+    @NonNull
+    @RolesAllowed(RolesEnum.ADMIN)
+    public List<@NonNull NotificationStatsMultiLineDTO> obtenerEstadisticasNotificacionesTodasInstituciones() {
+        return notificacionService.obtenerEstadisticasNotificacionesTodasInstituciones();
     }
 }

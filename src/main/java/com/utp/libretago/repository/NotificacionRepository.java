@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+import com.utp.libretago.classes.dto.NotificationStatsDTO;
 import com.utp.libretago.entity.Notificacion;
 
 /**
@@ -91,6 +92,24 @@ public interface NotificacionRepository extends JpaRepository<Notificacion, Long
             + "FROM Notificacion n " + "JOIN n.notificacionGrupos ng " + "JOIN ng.grupo g " + "WHERE g.institucionEducativaId = :institucionId "
             + "AND n.fechaCreacion BETWEEN :startDate AND :endDate " + "GROUP BY CAST(n.fechaCreacion AS LocalDate) "
             + "ORDER BY CAST(n.fechaCreacion AS LocalDate) ASC")
-    List<com.utp.libretago.classes.dto.NotificationStatsDTO> countNotificacionesPorDia(@Param("institucionId") Long institucionId,
+    List<NotificationStatsDTO> countNotificacionesPorDia(@Param("institucionId") Long institucionId,
+            @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
+
+    /**
+     * Cuenta las notificaciones enviadas por día en un rango de fechas para todas las instituciones.
+     * Consulta optimizada que retorna todos los resultados en una sola ejecución.
+     *
+     * @param startDate fecha de inicio del rango.
+     * @param endDate   fecha de fin del rango.
+     * @return lista de estadísticas con institución, fecha y conteo.
+     */
+    @Query("SELECT new com.utp.libretago.classes.dto.NotificationStatsInstitucionDTO(g.institucionEducativaId, CAST(n.fechaCreacion AS LocalDate), COUNT(DISTINCT n.id)) "
+            + "FROM Notificacion n "
+            + "JOIN n.notificacionGrupos ng "
+            + "JOIN ng.grupo g "
+            + "WHERE n.fechaCreacion BETWEEN :startDate AND :endDate "
+            + "GROUP BY g.institucionEducativaId, CAST(n.fechaCreacion AS LocalDate) "
+            + "ORDER BY g.institucionEducativaId ASC, CAST(n.fechaCreacion AS LocalDate) ASC")
+    List<com.utp.libretago.classes.dto.NotificationStatsInstitucionDTO> countNotificacionesPorDiaTodasInstituciones(
             @Param("startDate") java.time.LocalDateTime startDate, @Param("endDate") java.time.LocalDateTime endDate);
 }

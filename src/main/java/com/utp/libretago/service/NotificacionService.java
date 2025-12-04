@@ -40,4 +40,12 @@ public interface NotificacionService {
      * @return lista de estadísticas.
      */
     List<com.utp.libretago.classes.dto.NotificationStatsDTO> obtenerEstadisticasNotificaciones(Long institucionId);
+
+    /**
+     * Obtiene estadísticas de notificaciones enviadas por día en los últimos 2 meses
+     * para todas las instituciones educativas (vista de administrador).
+     *
+     * @return lista de estadísticas por institución.
+     */
+    List<com.utp.libretago.classes.dto.NotificationStatsMultiLineDTO> obtenerEstadisticasNotificacionesTodasInstituciones();
 }

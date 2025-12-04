@@ -5,6 +5,7 @@ import StudentStatsChart from 'Frontend/components/charts/StudentStatsChart';
 import ProfesorStatsChart from 'Frontend/components/charts/ProfesorStatsChart';
 import NotificationStatsChart from 'Frontend/components/charts/NotificationStatsChart';
 import ColegioStatsChart from 'Frontend/components/charts/ColegioStatsChart';
+import AdminNotificationStatsChart from 'Frontend/components/charts/AdminNotificationStatsChart';
 
 export const config: ViewConfig = {
   title: 'Inicio',
@@ -35,6 +36,7 @@ export default function TaskListView() {
           <div className="flex flex-row flex-wrap justify-center gap-m w-full">
             <ColegioStatsChart />
           </div>
+          <AdminNotificationStatsChart />
         </div>
       )}
     </main>
