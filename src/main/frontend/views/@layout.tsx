@@ -6,11 +6,14 @@ import { useRegistroFirebase } from 'Frontend/security/useRegistroFisebase'
 import { Suspense, useEffect, useRef } from 'react'
 import { AiFillNotification } from "react-icons/ai"
 import { FaCalendarDay, FaSchoolFlag, FaUserGraduate, FaUsers } from "react-icons/fa6"
+import { FaHome, FaIdCard } from "react-icons/fa"
 import { IconType } from 'react-icons/lib'
 import { RiContactsBook3Fill } from "react-icons/ri"
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 
 const IconosPaginas: Record<string, IconType> = {
+  "": FaHome,
+  "/perfil": FaIdCard,
   "/alumnos": FaUserGraduate,
   "/instituciones-educativas": FaSchoolFlag,
   "/usuarios-colegio": FaUsers,
@@ -26,7 +29,7 @@ function Header() {
   // TODO Replace with real application logo and name
   return (
     <div className="flex p-m gap-m items-center" slot="drawer">
-      <Icon icon="vaadin:cubes" className="text-primary icon-l" />
+      <img src="/images/libretago_icon.png" width={36} alt="" />
       <span className="font-semibold text-l">Libretago</span>
     </div>
   )

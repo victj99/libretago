@@ -24,6 +24,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(registry -> {
             registry.requestMatchers(routeUtil::isRouteAllowed).permitAll();
             registry.requestMatchers("/descargar/**").authenticated();
+            registry.requestMatchers("/static/**").authenticated();
         });
 
         http.with(VaadinSecurityConfigurer.vaadin(), configurer -> {

@@ -9,7 +9,6 @@ import ColegioStatsChart from 'Frontend/components/charts/ColegioStatsChart';
 export const config: ViewConfig = {
   title: 'Inicio',
   menu: {
-    icon: 'vaadin:home',
     title: 'Inicio',
   },
 }

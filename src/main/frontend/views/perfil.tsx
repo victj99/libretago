@@ -8,7 +8,6 @@ import { useEffect, useState } from 'react'
 export const config: ViewConfig = {
   menu: {
     title: 'Mi Perfil',
-    icon: 'vaadin:user-card',
     order: 99,
   },
   loginRequired: true
