@@ -143,6 +143,7 @@ export default function AlumnoView() {
         <GridColumn path="nombres" />
         <GridColumn path="apellidos" />
         <GridColumn path="codigoAlumno" />
+        <GridColumn path="dniCeApoderado" header='DNI/Ce Apoderado' autoWidth />
         <GridColumn path="nombreCompletoApoderado" header='Apoderado' />
         <GridColumn path="telefono" />
         <GridColumn path="activo" renderer={({ item }) => <>{item.activo ? 'Sí' : 'No'}</>} />
